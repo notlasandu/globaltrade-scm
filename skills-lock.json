@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "ejb-expert": {
+      "source": "wbunker/skills-repo",
+      "sourceType": "github",
+      "skillPath": "ejb-expert/SKILL.md",
+      "computedHash": "94b2b1572e20cc5d05a1b1658f27c459babfde67cd8478e9ad5ec265d8dde0f9"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
+    },
+    "java-junit": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/java-junit/SKILL.md",
+      "computedHash": "fbf3cb0d47ffb44bdb6e1ebcc4d89dd7083208efdfc5b88f316c8bc2b58250b5"
+    },
+    "javax-to-jakarta-migration": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/javax-to-jakarta-migration/SKILL.md",
+      "computedHash": "00012770ad983334c6b6797979d4d70709161fa0d597a1d1deddbd5fadfc0522"
+    },
+    "unit-test-bean-validation": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-java/skills/unit-test-bean-validation/SKILL.md",
+      "computedHash": "41c4b7635cfb8e5977b308b5b100b6f630ca2e799ceb3392f6464fd66c63039e"
+    }
+  }
+}
