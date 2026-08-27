@@ -1,0 +1,88 @@
+package com.globaltrade.ejb;
+
+import com.globaltrade.core.entity.Customer;
+import com.globaltrade.core.entity.Order;
+import com.globaltrade.core.entity.OrderItem;
+import com.globaltrade.ejb.exception.UnauthorizedOrderAccessException;
+import jakarta.annotation.Resource;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.ejb.SessionContext;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import jakarta.interceptor.Interceptors;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import com.globaltrade.ejb.interceptor.AuditLoggingInterceptor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Stateless
+@RolesAllowed("CUSTOMER")
+@Interceptors(AuditLoggingInterceptor.class)
+public class OrderManagerBean implements OrderManagerLocal, OrderManagerRemote {
+
+    @PersistenceContext(unitName = "GlobalTradePU")
+    private EntityManager entityManager;
+
+    @Resource
+    private SessionContext sessionContext;
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void placeOrder(Long customerId, List<OrderItem> items) {
+        String loggedInUsername = sessionContext.getCallerPrincipal().getName();
+
+        Customer requestingCustomer = entityManager.find(Customer.class, customerId);
+
+        if (requestingCustomer == null || !requestingCustomer.getLoginUsername().equals(loggedInUsername)) {
+            throw new UnauthorizedOrderAccessException("Unauthorized access to customer account data");
+        }
+
+        Order newOrder = new Order();
+        newOrder.setOrderingCustomer(requestingCustomer);
+        newOrder.setOrderPlacementTimestamp(LocalDateTime.now());
+        newOrder.setOrderDeliveryStatus("PENDING");
+
+        for (OrderItem item : items) {
+            TypedQuery<Long> inventoryCheck = entityManager.createQuery(
+                    "SELECT COUNT(i) FROM Inventory i WHERE i.sku = :sku", Long.class);
+            inventoryCheck.setParameter("sku", item.getProductName());
+            
+            if (inventoryCheck.getSingleResult() == 0) {
+                throw new IllegalArgumentException("Product '" + item.getProductName() + "' does not exist in inventory.");
+            }
+            
+            newOrder.addOrderItem(item);
+        }
+
+        entityManager.persist(newOrder);
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List<Order> getOrdersForCustomer(Long customerId) {
+        String loggedInUsername = sessionContext.getCallerPrincipal().getName();
+
+        Customer requestingCustomer = entityManager.find(Customer.class, customerId);
+
+        if (requestingCustomer == null || !requestingCustomer.getLoginUsername().equals(loggedInUsername)) {
+            throw new UnauthorizedOrderAccessException("Unauthorized access to customer account data");
+        }
+
+        TypedQuery<Order> query = entityManager.createQuery(
+                "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems WHERE o.orderingCustomer.customerId = :custId", Order.class);
+        query.setParameter("custId", customerId);
+
+        List<Order> orders = query.getResultList();
+        
+        // Fix: Strip Hibernate PersistentBag wrappers so the remote Java client can deserialize the list
+        for (Order o : orders) {
+            if (o.getOrderItems() != null) {
+                o.setOrderItems(new java.util.ArrayList<>(o.getOrderItems()));
+            }
+        }
+        
+        return orders;
+    }
+}
