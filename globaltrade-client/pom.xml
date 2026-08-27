@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.globaltrade</groupId>
+        <artifactId>globaltrade-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>globaltrade-client</artifactId>
+    <packaging>jar</packaging>
+
+    <name>GlobalTrade Logistics - Client Simulator</name>
+
+    <dependencies>
+        <!-- Need access to the EJB Remote Interfaces and Core Entities -->
+        <dependency>
+            <groupId>com.globaltrade</groupId>
+            <artifactId>globaltrade-ejb</artifactId>
+            <version>${project.version}</version>
+            <type>ejb</type>
+        </dependency>
+        <dependency>
+            <groupId>com.globaltrade</groupId>
+            <artifactId>globaltrade-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- WildFly Remote Client library for JNDI Lookups -->
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-client-all</artifactId>
+            <version>30.0.0.Final</version> <!-- Match your WildFly version appropriately -->
+        </dependency>
+
+        <!-- Provide Jakarta EE annotations used by the Core entities -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <!-- Scope is intentionally NOT 'provided' here so the client JVM can read the annotations -->
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <!-- Setup executable JAR -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <mainClass>com.globaltrade.client.SimulationEngine</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
