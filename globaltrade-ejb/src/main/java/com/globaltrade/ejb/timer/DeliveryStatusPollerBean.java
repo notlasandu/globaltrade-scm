@@ -30,14 +30,20 @@ public class DeliveryStatusPollerBean {
         pollerLogger.info("Starting automated delivery status poll...");
 
         TypedQuery<Order> query = entityManager.createQuery(
-                "SELECT o FROM Order o WHERE o.orderDeliveryStatus = 'PENDING' OR o.orderDeliveryStatus = 'SHIPPED'", Order.class);
+                "SELECT o FROM Order o WHERE o.orderDeliveryStatus = 'PACKED' OR o.orderDeliveryStatus = 'SHIPPED'", Order.class);
         List<Order> activeOrders = query.getResultList();
 
         for (Order currentOrder : activeOrders) {
             try {
-                String updatedStatus = carrierTrackingSimulator.checkShipmentStatus(currentOrder.getOrderId());
-                currentOrder.setOrderDeliveryStatus(updatedStatus);
-                entityManager.merge(currentOrder);
+                if ("PACKED".equals(currentOrder.getOrderDeliveryStatus())) {
+                    pollerLogger.info("Allocating carrier for packed order " + currentOrder.getOrderId());
+                    currentOrder.setOrderDeliveryStatus("SHIPPED");
+                    entityManager.merge(currentOrder);
+                } else if ("SHIPPED".equals(currentOrder.getOrderDeliveryStatus())) {
+                    String updatedStatus = carrierTrackingSimulator.checkShipmentStatus(currentOrder.getOrderId());
+                    currentOrder.setOrderDeliveryStatus(updatedStatus);
+                    entityManager.merge(currentOrder);
+                }
             } catch (CarrierSystemOutageException outageException) {
                 pollerLogger.warning("Carrier system outage detected while checking order " + currentOrder.getOrderId() + ". Skipping until next poll.");
             }

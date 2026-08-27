@@ -17,6 +17,21 @@ public class HospitalActor implements SimulationActor {
     private static final String INVENTORY_MANAGER_JNDI = "ejb:globaltrade-ear/globaltrade-ejb/InventoryManagerBean!com.globaltrade.ejb.InventoryManagerRemote";
 
     @Override
+    public boolean authenticate(Context jndiContext) {
+        try {
+            OrderManagerRemote orderManager = (OrderManagerRemote) jndiContext.lookup(ORDER_MANAGER_JNDI);
+            orderManager.getOrdersForCustomer(-1L);
+            return true;
+        } catch (com.globaltrade.ejb.exception.UnauthorizedOrderAccessException e) {
+            // EJB Security allowed the request, meaning authentication and role check passed.
+            // It failed in the business logic because ID -1 doesn't exist, which is fine!
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
     public void execute(Context jndiContext) throws Exception {
         System.out.println("--------------------------------------------------");
         System.out.println("[HOSPITAL ACTOR] Booting Interactive Terminal...");

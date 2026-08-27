@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.UserTransaction;
 
 @ExtendWith(ArquillianExtension.class)
 public class DeliveryStatusPollerBeanIT {
@@ -35,5 +38,30 @@ public class DeliveryStatusPollerBeanIT {
         Assertions.assertDoesNotThrow(() -> {
             pollerBean.pollDeliveryStatuses();
         });
+    }
+
+    @PersistenceContext(unitName = "GlobalTradePU")
+    private EntityManager em;
+
+    @Inject
+    private UserTransaction utx;
+
+    @Test
+    public void pollDeliveryStatuses_should_transitionPackedToShipped() throws Exception {
+        utx.begin();
+        em.joinTransaction();
+        Order o = new Order();
+        o.setOrderDeliveryStatus("PACKED");
+        em.persist(o);
+        utx.commit();
+
+        pollerBean.pollDeliveryStatuses();
+
+        utx.begin();
+        em.joinTransaction();
+        Order updated = em.find(Order.class, o.getOrderId());
+        Assertions.assertEquals("SHIPPED", updated.getOrderDeliveryStatus());
+        em.remove(updated);
+        utx.commit();
     }
 }

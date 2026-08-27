@@ -1,12 +1,13 @@
 package com.globaltrade.client;
 
 import com.globaltrade.client.actor.HospitalActor;
+import com.globaltrade.client.actor.WarehouseActor;
+import com.globaltrade.client.actor.CarrierActor;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 
 public class SimulationEngine {
 
@@ -14,41 +15,70 @@ public class SimulationEngine {
         System.out.println("==================================================");
         System.out.println("  GLOBALTRADE LOGISTICS - SCM SIMULATION ENGINE  ");
         System.out.println("==================================================");
-        System.out.println("[ENGINE] Booting up simulation environment...");
+        
+        Scanner scanner = new Scanner(System.in);
+        boolean engineRunning = true;
 
-        try {
-            // 1. Setup the connection to WildFly Server
-            Properties props = new Properties();
-            props.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
-            props.put(Context.PROVIDER_URL, "remote+http://localhost:8080");
-
-            // Define the security principal (Simulating a logged-in Hospital Admin)
-            props.put(Context.SECURITY_PRINCIPAL, "hospitaladmin");
-            props.put(Context.SECURITY_CREDENTIALS, "password123");
-
-            // 2. Connect to the JNDI Directory
-            Context jndiContext = new InitialContext(props);
-            System.out.println("[ENGINE] Connected to WildFly JNDI successfully.\n");
-
-            // 3. Register Actors
-            List<SimulationActor> actors = new ArrayList<>();
-            actors.add(new HospitalActor());
+        while (engineRunning) {
+            System.out.println("\n[GATEWAY] Select Terminal Portal:");
+            System.out.println("  1. Hospital Ordering Portal");
+            System.out.println("  2. Warehouse Management Terminal");
+            System.out.println("  3. Carrier Logistics Terminal");
+            System.out.println("  4. Exit Simulator");
+            System.out.print("\nEnter choice (1-4): ");
             
-            // FUTURE ACTORS WILL BE ADDED HERE:
-            // actors.add(new WarehouseActor());
-            // actors.add(new VendorActor());
-            // actors.add(new CustomsActor());
-
-            // 4. Execute the Simulation Script
-            for (SimulationActor actor : actors) {
-                actor.execute(jndiContext);
+            String choice = scanner.nextLine().trim();
+            
+            if ("4".equals(choice)) {
+                System.out.println("[ENGINE] Shutting down simulation environment...");
+                engineRunning = false;
+                continue;
             }
 
-            System.out.println("\n[ENGINE] Simulation completed successfully!");
+            SimulationActor selectedActor = null;
+            if ("1".equals(choice)) {
+                selectedActor = new HospitalActor();
+            } else if ("2".equals(choice)) {
+                selectedActor = new WarehouseActor();
+            } else if ("3".equals(choice)) {
+                selectedActor = new CarrierActor();
+            } else {
+                System.out.println("[ERROR] Invalid selection. Please try again.");
+                continue;
+            }
 
-        } catch (Exception e) {
-            System.err.println("\n[ENGINE] Simulation failed with a critical error:");
-            e.printStackTrace();
+            System.out.println("\n--- Authentication Required ---");
+            System.out.print("Username: ");
+            String username = scanner.nextLine().trim();
+            System.out.print("Password: ");
+            String password = scanner.nextLine().trim();
+
+            try {
+                // Setup the connection to WildFly Server
+                Properties props = new Properties();
+                props.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
+                props.put(Context.PROVIDER_URL, "remote+http://localhost:8080");
+                props.put(Context.SECURITY_PRINCIPAL, username);
+                props.put(Context.SECURITY_CREDENTIALS, password);
+
+                System.out.println("[ENGINE] Authenticating with JNDI Directory...");
+                Context jndiContext = new InitialContext(props);
+                
+                if (!selectedActor.authenticate(jndiContext)) {
+                    System.err.println("[ERROR] Authentication failed! Invalid username, password, or unauthorized role.");
+                    continue;
+                }
+
+                System.out.println("[ENGINE] Authentication Successful.\n");
+
+                // Execute the selected Simulation Script
+                selectedActor.execute(jndiContext);
+
+            } catch (Exception e) {
+                System.err.println("\n[ENGINE] Terminal session crashed with an error:");
+                e.printStackTrace();
+            }
         }
+        scanner.close();
     }
 }
