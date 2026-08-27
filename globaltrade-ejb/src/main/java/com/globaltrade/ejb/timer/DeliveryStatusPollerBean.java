@@ -25,7 +25,7 @@ public class DeliveryStatusPollerBean {
     @Inject
     private CarrierTrackingSimulatorBean carrierTrackingSimulator;
 
-    @Schedule(hour = "*", minute = "*/15", persistent = false)
+    @Schedule(hour = "*", minute = "*/15", persistent = true)
     public void pollDeliveryStatuses() {
         pollerLogger.info("Starting automated delivery status poll...");
 

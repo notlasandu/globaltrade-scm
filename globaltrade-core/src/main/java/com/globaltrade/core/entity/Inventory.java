@@ -19,6 +19,16 @@ public class Inventory implements Serializable {
     @Column(nullable = false)
     private String location;
 
+    @Column(nullable = false)
+    private int reorderThreshold;
+
+    @Column(nullable = false)
+    private int reorderQuantity;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "primaryVendorId")
+    private Vendor primaryVendor;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -30,4 +40,13 @@ public class Inventory implements Serializable {
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+
+    public int getReorderThreshold() { return reorderThreshold; }
+    public void setReorderThreshold(int reorderThreshold) { this.reorderThreshold = reorderThreshold; }
+
+    public int getReorderQuantity() { return reorderQuantity; }
+    public void setReorderQuantity(int reorderQuantity) { this.reorderQuantity = reorderQuantity; }
+
+    public Vendor getPrimaryVendor() { return primaryVendor; }
+    public void setPrimaryVendor(Vendor primaryVendor) { this.primaryVendor = primaryVendor; }
 }

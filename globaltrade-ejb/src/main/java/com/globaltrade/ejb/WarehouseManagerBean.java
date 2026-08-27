@@ -56,26 +56,7 @@ public class WarehouseManagerBean implements WarehouseManagerLocal, WarehouseMan
             throw new IllegalArgumentException("Order is not in PENDING state.");
         }
 
-        for (OrderItem item : order.getOrderItems()) {
-            TypedQuery<Inventory> invQuery = entityManager.createQuery(
-                    "SELECT i FROM Inventory i WHERE i.sku = :sku", Inventory.class);
-            invQuery.setParameter("sku", item.getProductName());
-
-            Inventory inventory;
-            try {
-                inventory = invQuery.getSingleResult();
-            } catch (NoResultException e) {
-                throw new InsufficientStockException("Product " + item.getProductName() + " not found in inventory.");
-            }
-
-            if (inventory.getQuantity() < item.getQuantityRequested()) {
-                throw new InsufficientStockException("Insufficient stock for " + item.getProductName() + 
-                    ". Requested: " + item.getQuantityRequested() + ", Available: " + inventory.getQuantity());
-            }
-
-            inventory.setQuantity(inventory.getQuantity() - item.getQuantityRequested());
-            entityManager.merge(inventory);
-        }
+        // Stock is now deducted at the time of order placement in OrderManagerBean.
 
         order.setOrderDeliveryStatus("PACKED");
         entityManager.merge(order);

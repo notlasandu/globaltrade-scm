@@ -123,44 +123,4 @@ public class WarehouseManagerBeanIT {
         em.remove(packed);
         utx.commit();
     }
-    
-    @Test
-    public void packOrder_should_throwInsufficientStockException_andRollback_when_stockIsLow() throws Exception {
-        utx.begin();
-        em.joinTransaction();
-        Customer c = new Customer();
-        c.setHospitalName("WH Hosp 3");
-        c.setContactEmail(java.util.UUID.randomUUID().toString() + "@test.com");
-        c.setLoginUsername(java.util.UUID.randomUUID().toString());
-        c.setLoginPasswordHash("hash");
-        em.persist(c);
-        Order o = new Order();
-        o.setOrderingCustomer(c);
-        o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
-        o.setOrderDeliveryStatus("PENDING");
-        String productName = "Anti_" + java.util.UUID.randomUUID().toString();
-        OrderItem item = new OrderItem();
-        item.setProductName(productName);
-        item.setQuantityRequested(99999);
-        Inventory inv = new Inventory();
-        inv.setSku(productName);
-        inv.setQuantity(500); // Has 500, we request 99999
-        inv.setLocation("Test Location");
-        em.persist(inv);
-
-        o.addOrderItem(item);
-        em.persist(o);
-        utx.commit();
-
-        Assertions.assertThrows(InsufficientStockException.class, () -> {
-            warehouseManagerWrapper.packOrder(o.getOrderId());
-        });
-
-        // Cleanup
-        utx.begin();
-        em.joinTransaction();
-        Order failed = em.find(Order.class, o.getOrderId());
-        em.remove(failed);
-        utx.commit();
-    }
 }

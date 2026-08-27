@@ -48,8 +48,8 @@ The system is designed with a strict multi-module Maven architecture, decoupling
 
 | Terminal | Purpose | Commands |
 | :--- | :--- | :--- |
-| **Hospital Portal** | Secure B2B client for placing medical orders | `order`, `history` |
-| **Warehouse Ops** | Internal tool for staff to pack shipments | `pending`, `pack` |
+| **Hospital Portal** | Secure B2B client for placing medical orders | `order`, `history`, `list` |
+| **Warehouse Ops** | Internal tool for staff to pack shipments and reconcile stock | `pending`, `pack`, `reconcile`, `wms-outage` |
 | **Carrier Logistics** | Mobile tool for drivers to manage deliveries | `manifest`, `deliver`, `breakdown` |
 
 #### Terminal Preview Example (Carrier)
@@ -75,8 +75,9 @@ Enter command: breakdown 2
 * **Audit Logging:** Every critical method invocation is tracked via custom `@Interceptors(AuditLoggingInterceptor.class)`, creating immutable logs of system access.
 
 ### 3. Advanced EJB Capabilities
+* **External WMS Integration:** A mocked Warehouse Management System using `@Singleton` and `ConcurrentHashMap` to stage cycle counts. An automated `@Schedule` timer asynchronously fetches these counts, reconciles the database, and dynamically triggers vendor restock orders if inventory dips below defined thresholds.
 * **Automated Supply Chain Timers:** An asynchronous `@Schedule` singleton bean (`DeliveryStatusPollerBean`) that continually advances packed orders to a shipped status and dynamically polls for delivery confirmations.
-* **Transaction Exception Recovery:** Simulates real-world supply chain failures (e.g., truck breakdowns). The system safely catches custom `rollback=true` exceptions, suspends the doomed transaction, and uses a `@TransactionAttribute(REQUIRES_NEW)` recovery service to securely isolate the failure into a delayed state without crashing.
+* **Transaction Exception Recovery:** Simulates real-world supply chain failures (e.g., truck breakdowns, WMS API outages). The system safely catches custom `rollback=true` exceptions, suspends the doomed transaction, and handles recovery gracefully.
 * **Arquillian Integration Testing:** Fully automated test suite that spins up a micro-deployment inside WildFly to rigorously validate EJB security wrappers, transaction boundaries, and database constraints.
 
 ### 4. Supply Chain Flow (Architecture Diagram)
