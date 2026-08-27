@@ -22,13 +22,14 @@ This document is a highly detailed, prescriptive blueprint for building the Cust
 1. **Entities (`globaltrade-core`):**
   - Create `Customer`, `Order`, `OrderItem`, and `Inventory` entities.
   - `Order` must map to a `Customer` (`@ManyToOne`).
-  - `Order` must map to `OrderItem`s (`@OneToMany`, cascading).
+  - `Order` must map to `OrderItem`s (`@OneToMany`, cascading). **CRITICAL:** Use a helper method like `addOrderItem(OrderItem item)` in the `Order` entity to correctly establish the bidirectional back-reference (i.e. `item.setParentOrder(this)`) before persisting, rather than relying purely on `.setOrderItems(list)`, to prevent `ConstraintViolationException`.
 2. **WildFly Configuration:**
   - Configure the PostgreSQL driver module in WildFly.
   - Define the `java:/GlobalTradeDS` datasource in `standalone.xml` (adhering to the strict attribute syntax for security).
 3. **Database Seeding:**
   - Create an `import.sql` file in `src/main/resources`.
   - **CRITICAL:** The `INSERT` statements in `import.sql` must explicitly provide values for *every* field annotated with `@Column(nullable = false)` in your entities. Missing non-null fields will cause the insert to fail silently during WildFly boot. Seed a test Hospital and initial medical supplies.
+  - **Data Isolation:** ShrinkWrap micro-deployments in your Arquillian tests do not automatically bundle `import.sql`. You must manually `persist()` test entities in your `@Before` or `@Test` setup. Always append `UUID.randomUUID().toString()` to unique strings (like `loginUsername`) to prevent `ConstraintViolationException` across test runs.
 
 ### Phase 2: EJB Business Logic
 
@@ -52,6 +53,7 @@ This document is a highly detailed, prescriptive blueprint for building the Cust
 1. **Setup (`globaltrade-client`):**
   - Do not build a web UI. Build a standalone Java application.
   - Configure `jndi.properties` and the `wildfly-ejb-client-bom` to connect to WildFly port 8080.
+  - **JNDI Lookup:** In your Arquillian Integration Tests, ShrinkWrap generates dynamic, randomized deployment names. Use the `java:module/` namespace (e.g., `java:module/OrderManagerBean!com.globaltrade.ejb.OrderManagerRemote`) for reliable JNDI lookups within the same container deployment.
 2. **`HospitalActor` Implementation:**
   - Create an interactive `while(true)` loop using `java.util.Scanner`.
   - Look up `OrderManagerRemote` and `InventoryManagerRemote` via JNDI (`ejb:globaltrade-ear/...`).

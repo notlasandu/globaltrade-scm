@@ -30,14 +30,14 @@ public class WarehouseManagerBeanIT {
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class, "test.jar")
-                .addClasses(WarehouseManagerBean.class, WarehouseManagerLocal.class, WarehouseManagerRemote.class, InsufficientStockException.class, AuditInterceptor.class)
+                .addClasses(WarehouseManagerBean.class, WarehouseManagerLocal.class, WarehouseManagerRemote.class, InsufficientStockException.class, AuditInterceptor.class, WarehouseManagerTestWrapper.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
     }
 
     @EJB
-    private WarehouseManagerLocal warehouseManager;
+    private WarehouseManagerTestWrapper warehouseManagerWrapper;
 
     @PersistenceContext(unitName = "GlobalTradePU")
     private EntityManager em;
@@ -60,14 +60,21 @@ public class WarehouseManagerBeanIT {
         o.setOrderingCustomer(c);
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
+        String productName = "MRI_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName("MRI Machine");
+        item.setProductName(productName);
         item.setQuantityRequested(1);
+        Inventory inv = new Inventory();
+        inv.setSku(productName);
+        inv.setQuantity(50);
+        inv.setLocation("Test Location");
+        em.persist(inv);
+        
         o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
-        List<Order> pendingOrders = warehouseManager.getPendingOrders();
+        List<Order> pendingOrders = warehouseManagerWrapper.getPendingOrders();
         Assertions.assertFalse(pendingOrders.isEmpty());
         
         // Clean up
@@ -93,14 +100,21 @@ public class WarehouseManagerBeanIT {
         o.setOrderingCustomer(c);
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
+        String productName = "Masks_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName("Surgical Masks");
+        item.setProductName(productName);
         item.setQuantityRequested(5);
+        Inventory inv = new Inventory();
+        inv.setSku(productName);
+        inv.setQuantity(500);
+        inv.setLocation("Test Location");
+        em.persist(inv);
+
         o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
-        warehouseManager.packOrder(o.getOrderId());
+        warehouseManagerWrapper.packOrder(o.getOrderId());
 
         utx.begin();
         em.joinTransaction();
@@ -124,15 +138,22 @@ public class WarehouseManagerBeanIT {
         o.setOrderingCustomer(c);
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
+        String productName = "Anti_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName("Antibiotics");
+        item.setProductName(productName);
         item.setQuantityRequested(99999);
+        Inventory inv = new Inventory();
+        inv.setSku(productName);
+        inv.setQuantity(500); // Has 500, we request 99999
+        inv.setLocation("Test Location");
+        em.persist(inv);
+
         o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
-        Assertions.assertThrows(EJBException.class, () -> {
-            warehouseManager.packOrder(o.getOrderId());
+        Assertions.assertThrows(InsufficientStockException.class, () -> {
+            warehouseManagerWrapper.packOrder(o.getOrderId());
         });
 
         // Cleanup

@@ -16,7 +16,7 @@ public class CarrierActor implements SimulationActor {
     @Override
     public boolean authenticate(Context jndiContext) {
         try {
-            carrierManager = (CarrierManagerRemote) jndiContext.lookup("ejb:/globaltrade-ejb/CarrierManagerBean!com.globaltrade.ejb.CarrierManagerRemote");
+            carrierManager = (CarrierManagerRemote) jndiContext.lookup("ejb:globaltrade-ear/globaltrade-ejb/CarrierManagerBean!com.globaltrade.ejb.CarrierManagerRemote");
             // Strict authentication check
             carrierManager.getManifest();
             return true;

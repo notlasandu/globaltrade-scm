@@ -29,14 +29,14 @@ public class CarrierManagerBeanIT {
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class, "test.jar")
-                .addClasses(CarrierManagerBean.class, CarrierManagerLocal.class, CarrierManagerRemote.class, ExceptionRecoveryService.class, CarrierSystemOutageException.class)
+                .addClasses(CarrierManagerBean.class, CarrierManagerLocal.class, CarrierManagerRemote.class, ExceptionRecoveryService.class, CarrierSystemOutageException.class, CarrierManagerTestWrapper.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
     }
 
     @EJB
-    private CarrierManagerLocal carrierManager;
+    private CarrierManagerTestWrapper carrierManagerWrapper;
 
     @PersistenceContext(unitName = "GlobalTradePU")
     private EntityManager em;
@@ -66,16 +66,15 @@ public class CarrierManagerBeanIT {
         OrderItem item = new OrderItem();
         item.setProductName("Test Package");
         item.setQuantityRequested(1);
-        items.add(item);
-        o.setOrderItems(items);
+        o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
         Long orderId = o.getOrderId();
 
         // 1. Assert that the main transaction throws an Exception and Rolls Back
-        Assertions.assertThrows(EJBException.class, () -> {
-            carrierManager.updateTransitStatus(orderId, "BREAKDOWN");
+        Assertions.assertThrows(CarrierSystemOutageException.class, () -> {
+            carrierManagerWrapper.updateTransitStatus(orderId, "BREAKDOWN");
         });
 
         // 2. Assert that the REQUIRES_NEW transaction survived the rollback

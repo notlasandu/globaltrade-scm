@@ -57,9 +57,10 @@ This plan isolates the **Warehouse Outbound** logistics flow into a dedicated im
 **Goal:** Validating the entire warehouse flow in the EJB Container.
 
 1. **Arquillian Integration Tests (`globaltrade-ejb/src/test/java`)**
-  - Wait until all phases are complete before writing tests.
-  - Use Arquillian to deploy the EJBs into a managed WildFly container.
-  - Write tests for `WarehouseManagerBean` and `CarrierDispatchPoller` hitting the actual EJB container to validate transaction rollbacks, security, and timer services as required by the final assessment.
+  - Use Arquillian to deploy the EJBs into a managed WildFly container via ShrinkWrap.
+  - **Security Bypass (Wrapper Pattern):** To test `@RolesAllowed("WAREHOUSE_STAFF")` methods, create a top-level `@Stateless` wrapper class annotated with `@RunAs("WAREHOUSE_STAFF")` and `@PermitAll`. Inject this wrapper into the test instead of the actual bean.
+  - **Transaction Integrity:** Ensure the wrapper bean's read methods (like `getPendingOrders`) are annotated with `@TransactionAttribute(TransactionAttributeType.SUPPORTS)` to match the target bean and avoid premature Hibernate collection flushes.
+  - **Data Isolation:** ShrinkWrap micro-deployments do not execute `import.sql`. You must manually `persist()` test `Inventory` and `Customer` entities in the `@Before` or `@Test` setup. Always append UUIDs to unique strings (like `sku` or `loginUsername`) to prevent `ConstraintViolationException` across test runs.
 
 ### Phase 5: Secure Client Gateway & RMI Optimization
 

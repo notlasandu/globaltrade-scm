@@ -59,4 +59,17 @@ The Concept Diagram also explicitly highlights a failure path:
 *Complexity: High (Integration Testing)*
 
 1. **`CarrierManagerBeanIT`**:
-   - Write a specific test that explicitly forces a `CarrierTransitException` and verifies that the transaction rolls back safely and the recovery/backup plan executes correctly. This guarantees maximum marks for the "Exception handling testing with supply chain failure scenario validation" rubric.
+   - Write a specific test that explicitly forces a `CarrierTransitException` and verifies that the transaction rolls back safely and the recovery/backup plan executes correctly.
+   - **Security Bypass (Wrapper Pattern):** Because `CarrierManagerBean` is protected by `@RolesAllowed("CARRIER")`, you must create a top-level `@Stateless` wrapper class annotated with `@RunAs("CARRIER")` and `@PermitAll`. Inject this wrapper into the test instead of the actual bean, otherwise the test will fail with `EJBAccessException`.
+   - **Data Setup:** When creating dummy data for the test, use `UUID.randomUUID().toString()` for unique constraints (like Customer loginUsername or Inventory sku) to prevent `ConstraintViolationException` across test runs.
+
+### Phase 5: WildFly Configuration & Exception Evaluation
+*Complexity: Medium (Configuration & Documentation)*
+
+1. **Standalone Client Setup:**
+   - **JNDI Resolution:** When looking up EJBs from a standalone client into an Enterprise Archive (EAR), the JNDI string MUST include the EAR module name. (e.g., `ejb:globaltrade-ear/globaltrade-ejb/...`). A missing EAR name will result in a silent `NameNotFoundException` which can masquerade as an authentication failure if not caught properly.
+   - **WildFly Users:** Ensure the `carrierdriver` user is actually added to the WildFly `application-users.properties` using the `add-user` script with the `CARRIER` role before testing the portal.
+2. **Exception Evaluation (Grading Rubric Fulfillment):**
+   - The rubric heavily emphasizes: *"recovery strategies for different supply chain failure scenarios"*.
+   - By successfully catching the `CarrierSystemOutageException`, triggering the `REQUIRES_NEW` recovery service, and permanently storing the package as `DELAYED_TRANSIT_ISSUE`, you completely fulfill this requirement.
+   - The automated `DeliveryStatusPollerBean` purposefully ignores `DELAYED_TRANSIT_ISSUE` packages, meaning the system gracefully isolated the failure without crashing, leaving the package waiting for manual managerial intervention (which is the exact correct enterprise behavior).

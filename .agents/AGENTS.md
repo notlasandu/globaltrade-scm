@@ -30,3 +30,10 @@ The system will feature an EJB architecture (Timer Services, Interceptors, Trans
 ### Testing & Build
 - **END-OF-PROJECT ARQUILLIAN TESTING**: Do not test-as-you-go. All unit and integration tests must be written exclusively as the final phase of a feature/project, and MUST use Arquillian for testing in the EJB container, per the assignment guidelines. Do not use standalone Mockito for EJB tests.
 - **NO MAVEN TERMINAL COMMANDS**: Do not run `mvn` commands (like `mvn clean test`) in the terminal since it is not configured on the PATH. Instead, stop and ask the user to execute the Maven goals via IntelliJ.
+- **ARQUILLIAN EJB SECURITY TESTING**: When testing EJBs protected by `@RolesAllowed`, the anonymous test runner will fail with an `EJBAccessException`. To securely test these beans, you must implement the Wrapper Bean pattern:
+  1. Create a separate, **top-level** `@Stateless` wrapper class (WildFly strictly forbids inner-class EJBs and will crash with `WFLYEJB0128`).
+  2. Annotate the wrapper with `@RunAs("REQUIRED_ROLE")` and explicitly add `@PermitAll` (so the anonymous test runner is allowed to invoke the wrapper).
+  3. The wrapper's methods MUST mirror the target EJB's `@TransactionAttribute`s. (If the target uses `SUPPORTS` to prevent lazy-load proxy crashes, the wrapper must also use `SUPPORTS`. Otherwise, it defaults to `REQUIRED` and breaks the underlying safety mechanism).
+- **ARQUILLIAN TEST DATA & STATE**:
+  - ShrinkWrap micro-deployments do not automatically execute `import.sql` unless explicitly bundled. Always manually construct and `persist()` required test entities (e.g., `Inventory`, `Customer`) directly in the test setup logic.
+  - Because Arquillian retains database state across test runs (`hibernate.hbm2ddl.auto = update`), hardcoding static strings for unique entity fields (like `sku` or `loginUsername`) will cause `ConstraintViolationException` on subsequent test runs. Always append `UUID.randomUUID().toString()` to values used in `@Column(unique=true)` fields during test setup.
