@@ -12,7 +12,7 @@ import jakarta.inject.Inject;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(ArquillianExtension.class)
-public class LogisticsServiceTest {
+public class LogisticsServiceIT {
 
     @Deployment
     public static JavaArchive createDeployment() {

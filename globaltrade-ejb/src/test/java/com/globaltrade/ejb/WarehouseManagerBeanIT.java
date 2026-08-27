@@ -22,6 +22,7 @@ import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.globaltrade.core.entity.Customer;
 
 @ExtendWith(ArquillianExtension.class)
 public class WarehouseManagerBeanIT {
@@ -49,14 +50,20 @@ public class WarehouseManagerBeanIT {
         // Setup Order
         utx.begin();
         em.joinTransaction();
+        Customer c = new Customer();
+        c.setHospitalName("WH Hosp 1");
+        c.setContactEmail(java.util.UUID.randomUUID().toString() + "@test.com");
+        c.setLoginUsername(java.util.UUID.randomUUID().toString());
+        c.setLoginPasswordHash("hash");
+        em.persist(c);
         Order o = new Order();
+        o.setOrderingCustomer(c);
+        o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
-        List<OrderItem> items = new ArrayList<>();
         OrderItem item = new OrderItem();
         item.setProductName("MRI Machine");
         item.setQuantityRequested(1);
-        items.add(item);
-        o.setOrderItems(items);
+        o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
@@ -76,14 +83,20 @@ public class WarehouseManagerBeanIT {
         // Setup Order
         utx.begin();
         em.joinTransaction();
+        Customer c = new Customer();
+        c.setHospitalName("WH Hosp 2");
+        c.setContactEmail(java.util.UUID.randomUUID().toString() + "@test.com");
+        c.setLoginUsername(java.util.UUID.randomUUID().toString());
+        c.setLoginPasswordHash("hash");
+        em.persist(c);
         Order o = new Order();
+        o.setOrderingCustomer(c);
+        o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
-        List<OrderItem> items = new ArrayList<>();
         OrderItem item = new OrderItem();
         item.setProductName("Surgical Masks");
         item.setQuantityRequested(5);
-        items.add(item);
-        o.setOrderItems(items);
+        o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 
@@ -101,14 +114,20 @@ public class WarehouseManagerBeanIT {
     public void packOrder_should_throwInsufficientStockException_andRollback_when_stockIsLow() throws Exception {
         utx.begin();
         em.joinTransaction();
+        Customer c = new Customer();
+        c.setHospitalName("WH Hosp 3");
+        c.setContactEmail(java.util.UUID.randomUUID().toString() + "@test.com");
+        c.setLoginUsername(java.util.UUID.randomUUID().toString());
+        c.setLoginPasswordHash("hash");
+        em.persist(c);
         Order o = new Order();
+        o.setOrderingCustomer(c);
+        o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
-        List<OrderItem> items = new ArrayList<>();
         OrderItem item = new OrderItem();
         item.setProductName("Antibiotics");
-        item.setQuantityRequested(99999); // Exceeds import.sql quantity
-        items.add(item);
-        o.setOrderItems(items);
+        item.setQuantityRequested(99999);
+        o.addOrderItem(item);
         em.persist(o);
         utx.commit();
 

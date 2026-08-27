@@ -42,8 +42,8 @@ public class OrderManagerBeanIT {
         // Manually creating an InitialContext to act as an external client
         Context context = new InitialContext();
         
-        // The standard Java EE JNDI lookup name for a remote interface in a test.jar deployment
-        String jndiName = "java:global/test/OrderManagerBean!com.globaltrade.ejb.OrderManagerRemote";
+        // Using java:module avoids issues with Arquillian generating random deployment names
+        String jndiName = "java:module/OrderManagerBean!com.globaltrade.ejb.OrderManagerRemote";
         
         OrderManagerRemote remoteManager = (OrderManagerRemote) context.lookup(jndiName);
         

@@ -50,7 +50,15 @@ public class DeliveryStatusPollerBeanIT {
     public void pollDeliveryStatuses_should_transitionPackedToShipped() throws Exception {
         utx.begin();
         em.joinTransaction();
+        Customer c = new Customer();
+        c.setHospitalName("Poller Hosp");
+        c.setContactEmail("poller@test.com");
+        c.setLoginUsername("polleruser");
+        c.setLoginPasswordHash("hash");
+        em.persist(c);
         Order o = new Order();
+        o.setOrderingCustomer(c);
+        o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PACKED");
         em.persist(o);
         utx.commit();
