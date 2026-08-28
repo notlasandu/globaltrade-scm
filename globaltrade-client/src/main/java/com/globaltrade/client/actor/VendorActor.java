@@ -49,7 +49,7 @@ public class VendorActor implements SimulationActor {
             System.out.println("=========================================");
             System.out.println(" Commands:");
             System.out.println("  1. 'orders'      - View requested restock orders");
-            System.out.println("  2. 'fulfill <id> <docs>' - Fulfill an order");
+            System.out.println("  2. 'fulfill <id> <docs> [tracking]' - Fulfill an order");
             System.out.println("  3. 'evaluations' - View performance evaluations");
             System.out.println("  4. 'exit'        - Close portal");
             System.out.print("\nEnter command: ");
@@ -76,7 +76,7 @@ public class VendorActor implements SimulationActor {
 
                     case "fulfill":
                         if (parts.length < 3) {
-                            System.out.println("[ERROR] Invalid format. Use: fulfill <OrderId> <true/false (docs provided)>");
+                            System.out.println("[ERROR] Invalid format. Use: fulfill <OrderId> <true/false (docs provided)> [TrackingNumber]");
                             break;
                         }
                         
@@ -88,10 +88,11 @@ public class VendorActor implements SimulationActor {
                             break;
                         }
                         boolean tradeDocs = Boolean.parseBoolean(parts[2]);
+                        String trackingNumber = parts.length > 3 ? parts[3] : "TRK-" + java.util.UUID.randomUUID().toString();
                         
-                        System.out.println("\n[SERVER] Fulfilling order " + orderId + " for Vendor " + currentVendorId + "...");
-                        facade.fulfillOrder(currentVendorId, orderId, tradeDocs);
-                        System.out.println("[SUCCESS] Order " + orderId + " marked as SHIPPED. Trade Docs: " + tradeDocs);
+                        System.out.println("\n[SERVER] Fulfilling order " + orderId + " for Vendor " + currentVendorId + " with tracking " + trackingNumber + "...");
+                        facade.fulfillOrder(currentVendorId, orderId, tradeDocs, trackingNumber);
+                        System.out.println("[SUCCESS] Order " + orderId + " marked as SHIPPED. Tracking: " + trackingNumber);
                         break;
 
                     case "evaluations":

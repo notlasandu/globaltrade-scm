@@ -43,6 +43,10 @@ public class SupplierOrder implements Serializable {
     @Column
     private Boolean tradeDocumentationProvided;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipment_id")
+    private Shipment shipment;
+
     public SupplierOrder() {}
 
     public Long getOrderId() { return orderId; }
@@ -77,4 +81,7 @@ public class SupplierOrder implements Serializable {
 
     public Boolean getTradeDocumentationProvided() { return tradeDocumentationProvided; }
     public void setTradeDocumentationProvided(Boolean tradeDocumentationProvided) { this.tradeDocumentationProvided = tradeDocumentationProvided; }
+
+    public Shipment getShipment() { return shipment; }
+    public void setShipment(Shipment shipment) { this.shipment = shipment; }
 }

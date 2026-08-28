@@ -1,8 +1,10 @@
 package com.globaltrade.ejb;
 
+import com.globaltrade.core.entity.Shipment;
 import com.globaltrade.core.entity.SupplierEvaluation;
 import com.globaltrade.core.entity.SupplierOrder;
 import com.globaltrade.core.entity.Vendor;
+import com.globaltrade.ejb.interceptor.LogisticsAuditInterceptor;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -30,7 +32,7 @@ public class SupplierIntegrationFacadeBeanIT {
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(SupplierIntegrationFacadeBean.class, SupplierIntegrationFacadeRemote.class, SupplierIntegrationFacadeTestWrapper.class)
+                .addClasses(SupplierIntegrationFacadeBean.class, SupplierIntegrationFacadeRemote.class, SupplierIntegrationFacadeTestWrapper.class, LogisticsAuditInterceptor.class)
                 .addPackage(Vendor.class.getPackage())
                 .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml");
@@ -114,10 +116,23 @@ public class SupplierIntegrationFacadeBeanIT {
         assertFalse(orders.isEmpty());
         Long orderId = orders.get(0).getOrderId();
 
-        wrapper.fulfillOrder(testVendorId, orderId, true);
+        String trackingNumber = "TRK-" + UUID.randomUUID().toString();
+        wrapper.fulfillOrder(testVendorId, orderId, true, trackingNumber);
 
-        SupplierOrder updatedOrder = em.find(SupplierOrder.class, orderId);
-        assertEquals("SHIPPED", updatedOrder.getStatus());
-        assertTrue(updatedOrder.getTradeDocumentationProvided());
+        try {
+            jakarta.transaction.UserTransaction utx = (jakarta.transaction.UserTransaction) new javax.naming.InitialContext().lookup("java:comp/UserTransaction");
+            utx.begin();
+            SupplierOrder updatedOrder = em.find(SupplierOrder.class, orderId);
+            assertEquals("SHIPPED", updatedOrder.getStatus());
+            assertTrue(updatedOrder.getTradeDocumentationProvided());
+            
+            Shipment linkedShipment = updatedOrder.getShipment();
+            assertNotNull(linkedShipment);
+            assertEquals(trackingNumber, linkedShipment.getTrackingNumber());
+            assertEquals("READY_FOR_EXPORT", linkedShipment.getStatus().name());
+            utx.commit();
+        } catch (Exception e) {
+            fail("Transaction failed: " + e.getMessage());
+        }
     }
 }

@@ -39,8 +39,9 @@ This plan outlines the architecture for the Vendor/Supplier module of the Global
   - **Security**: `@RolesAllowed("VENDOR")`.
   - Provides endpoints to `getActiveOrdersForVendor`, `getVendorEvaluations`, and `fulfillOrder`.
 - **Fulfillment Architecture & Customs Strategy**:
-  - The `fulfillOrder` endpoint changes the state to `SHIPPED` and captures the `tradeDocumentationProvided` flag. 
-  - This design intentionally defers the actual customs clearance process to a future "Government Module" (which will pick up the `SHIPPED` orders and process the documentation).
+  - The `fulfillOrder` endpoint requires a `trackingNumber` to bridge the gap between `SupplierOrder` and `Shipment`.
+  - It automatically finds or creates a `Shipment` entity, assigns the `trackingNumber`, and uses a `@ManyToOne` relationship to link the `SupplierOrder` to it.
+  - The shipment is immediately assigned the `READY_FOR_EXPORT` status. This seamlessly bridges the Supplier Module with the Government Module, allowing the `AutomatedCustomsFilingTimerBean` to pick it up automatically for customs clearance.
 
 ## Phase 4: Supplier Portal & Gateway Authentication (Client Module)
 
@@ -49,7 +50,7 @@ This plan outlines the architecture for the Vendor/Supplier module of the Global
   - **Strict JNDI Authentication**: Performs a test invocation on a secured `@Remote` EJB method (`SupplierIntegrationFacadeBean.ping()`) and catches `EJBAccessException`/`AuthenticationException` to validate credentials properly before granting access to the CLI.
   - Commands:
     - `orders`: Queries active restock requests using the facade.
-    - `fulfill <id> <docs>`: Triggers the facade to fulfill an order, providing a boolean flag for whether the customs documentation is attached.
+    - `fulfill <id> <docs> [tracking]`: Triggers the facade to fulfill an order, providing a boolean flag for whether the customs documentation is attached and an optional tracking number.
     - `evaluations`: Queries historical performance scores.
 
 ## Phase 5: Transaction & Auditing Interceptors
@@ -57,7 +58,7 @@ This plan outlines the architecture for the Vendor/Supplier module of the Global
 - **Transaction Management**: 
   - All state-modifying operations (e.g., `fulfillOrder`, `placeRestockOrder`) are strictly bound by `@TransactionAttribute(TransactionAttributeType.REQUIRED)`.
 - **Auditing**: 
-  - EJB methods that modify critical supply chain state are intercepted by `@Interceptors(AuditLoggingInterceptor.class)` to ensure a permanent, automated paper trail in the logs (aligning with rubric grading requirements).
+  - EJB methods that modify critical supply chain state (e.g., `fulfillOrder`) are intercepted by `@Interceptors(LogisticsAuditInterceptor.class)` to ensure a permanent, automated paper trail in the logs (aligning with rubric grading requirements).
 
 ## Phase 6: Arquillian Testing Validation
 

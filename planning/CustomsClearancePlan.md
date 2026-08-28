@@ -84,7 +84,8 @@ Following our strict project rules, testing will be done exclusively using Arqui
 ## Phase 7: Automated Customs Filing Bridge (EJB Timer Service)
 Instead of forcing human brokers or government officials to manually submit paperwork, our system needs an automated broker to do the heavy lifting in the background.
 *   **Create `AutomatedCustomsFilingTimerBean`:** A `@Singleton` timer service scheduled to run periodically.
-*   **Implementation:** It queries the database for any `Shipment` in the `READY_FOR_EXPORT` state and automatically invokes the `CustomsGatewayBean.submitDeclaration()` method on their behalf.
+*   **Implementation:** It queries the database for any `Shipment` in the `READY_FOR_EXPORT` state (set by the Supplier during fulfillment) and automatically invokes the `CustomsGatewayBean.submitDeclaration()` method on their behalf.
+*   **State Transition:** Once the paperwork is successfully filed, the shipment seamlessly transitions to `AT_BORDER_PENDING_CLEARANCE` so it appears immediately in the Customs Terminal for human review.
 *   **Security Context:** Because EJB background timers have no user session, the timer bean itself is annotated with `@RunAs("CUSTOMS_OFFICIAL")` and `@PermitAll` to securely invoke the protected gateway.
 
 ## Phase 8: Exception Recovery Strategy (`REQUIRES_NEW`)

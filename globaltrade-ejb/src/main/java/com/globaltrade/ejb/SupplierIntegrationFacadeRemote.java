@@ -14,5 +14,5 @@ public interface SupplierIntegrationFacadeRemote {
     
     List<SupplierEvaluation> getVendorEvaluations(Long vendorId);
     
-    void fulfillOrder(Long vendorId, Long orderId, boolean tradeDocsProvided);
+    void fulfillOrder(Long vendorId, Long orderId, boolean tradeDocsProvided, String trackingNumber);
 }

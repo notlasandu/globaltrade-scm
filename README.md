@@ -155,7 +155,6 @@ graph TD
 ```
 
 ### Planned (Roadmap)
-* **Logistics & Carrier Integration:** Implementing the bridge between fulfilled supplier orders and physical carrier shipments.
 * **Web UI:** Exposing the EJBs as REST APIs using JAX-RS for a modern frontend.
 
 ---

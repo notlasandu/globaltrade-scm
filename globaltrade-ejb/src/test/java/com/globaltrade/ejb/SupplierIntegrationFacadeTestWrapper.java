@@ -32,7 +32,7 @@ public class SupplierIntegrationFacadeTestWrapper {
         return facade.getVendorEvaluations(vendorId);
     }
 
-    public void fulfillOrder(Long vendorId, Long orderId, boolean tradeDocsProvided) {
-        facade.fulfillOrder(vendorId, orderId, tradeDocsProvided);
+    public void fulfillOrder(Long vendorId, Long orderId, boolean tradeDocsProvided, String trackingNumber) {
+        facade.fulfillOrder(vendorId, orderId, tradeDocsProvided, trackingNumber);
     }
 }

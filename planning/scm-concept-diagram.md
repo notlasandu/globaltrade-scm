@@ -14,7 +14,6 @@ graph TD
     Suppliers["Suppliers<br/>(The Factories)"]:::entity
     Customers["Customers<br/>(The Hospitals)"]:::entity
     Customs["Government<br/>(Customs Officials)"]:::entity
-    ShippingCompany["Shipping Company<br/>(Ocean/Air Freight)"]:::entity
     InboundCarriers["Inbound Trucks<br/>(Factory to Warehouse)"]:::entity
     OutboundCarriers["Outbound Trucks<br/>(Warehouse to Hospital)"]:::entity
 
@@ -25,11 +24,10 @@ graph TD
     Warehouse -->|"4. Picks up boxes"| OutboundCarriers
     OutboundCarriers -->|"5. Delivers goods"| Customers
 
-    %% 4. INBOUND LOGISTICS (Blue Arrows - Indices 5-11)
+    %% 4. INBOUND LOGISTICS (Blue Arrows - Indices 5-10)
     Warehouse -->|"6. Stock runs out"| Company
     Company -->|"7. Places new order"| Suppliers
-    Suppliers -->|"8. Hands over shipment"| ShippingCompany
-    ShippingCompany -->|"9. Arrives at border"| Customs
+    Suppliers -->|"8 & 9. Ships via Freight Carrier"| Customs
     Company -->|"10. Submits paperwork"| Customs
     Customs -->|"11. Clears border"| InboundCarriers
     InboundCarriers -->|"12. Restocks shelves"| Warehouse
@@ -50,7 +48,7 @@ graph TD
 
     %% Apply Colors to Arrows
     linkStyle 0,1,2,3,4 stroke:green,stroke-width:3px;
-    linkStyle 5,6,7,8,9,10,11 stroke:blue,stroke-width:3px;
-    linkStyle 12,13,14,15 stroke:red,stroke-width:2px,stroke-dasharray: 5 5;
-    linkStyle 16,17,18 stroke:gray,stroke-width:1px,stroke-dasharray: 2 2;
+    linkStyle 5,6,7,8,9,10 stroke:blue,stroke-width:3px;
+    linkStyle 11,12,13,14 stroke:red,stroke-width:2px,stroke-dasharray: 5 5;
+    linkStyle 15,16,17 stroke:gray,stroke-width:1px,stroke-dasharray: 2 2;
 ```
