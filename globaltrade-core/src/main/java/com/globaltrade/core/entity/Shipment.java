@@ -18,8 +18,9 @@ public class Shipment implements Serializable {
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private ShipmentStatus status;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date estimatedDelivery;
@@ -33,8 +34,8 @@ public class Shipment implements Serializable {
     public Vendor getVendor() { return vendor; }
     public void setVendor(Vendor vendor) { this.vendor = vendor; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public ShipmentStatus getStatus() { return status; }
+    public void setStatus(ShipmentStatus status) { this.status = status; }
 
     public Date getEstimatedDelivery() { return estimatedDelivery; }
     public void setEstimatedDelivery(Date estimatedDelivery) { this.estimatedDelivery = estimatedDelivery; }

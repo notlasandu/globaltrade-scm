@@ -1,0 +1,13 @@
+package com.globaltrade.core.entity;
+
+public enum ShipmentStatus {
+    PENDING_CUSTOMS,
+    AT_BORDER_PENDING_CLEARANCE,
+    CLEARED_CUSTOMS,
+    REJECTED_CUSTOMS,
+    SHIPPED,
+    DELIVERED,
+    IN_TRANSIT,
+    READY_FOR_EXPORT,
+    CUSTOMS_PAPERWORK_REJECTED
+}

@@ -52,6 +52,7 @@ The system is designed with a strict multi-module Maven architecture, decoupling
 | **Warehouse Ops** | Internal tool for staff to pack shipments and reconcile stock | `pending`, `pack`, `reconcile`, `wms-outage` |
 | **Carrier Logistics** | Mobile tool for drivers to manage deliveries | `manifest`, `deliver`, `breakdown` |
 | **Supplier Portal** | Secure B2B client for vendors to fulfill restock orders | `orders`, `fulfill`, `evaluations` |
+| **Government Customs** | Secure portal for border clearance | `list`, `approve`, `reject` |
 
 #### Terminal Preview Example (Carrier)
 ```text
@@ -100,6 +101,7 @@ graph TD
         Warehouse["Warehouse Terminal<br/>(Packing Ops)"]:::client
         Carrier["Carrier Terminal<br/>(Logistics/Breakdowns)"]:::client
         Vendor["Supplier Portal<br/>(Order Fulfillment)"]:::client
+        CustomsClient["Customs Terminal<br/>(Border Clearance)"]:::client
     end
 
     %% JNDI/RMI Boundary
@@ -107,6 +109,7 @@ graph TD
     Warehouse -- "JNDI / RMI" --> WildFly
     Carrier -- "JNDI / RMI" --> WildFly
     Vendor -- "JNDI / RMI" --> WildFly
+    CustomsClient -- "JNDI / RMI" --> WildFly
 
     %% Server Layer
     subgraph "Server Layer (WildFly 40.0)"
@@ -117,9 +120,11 @@ graph TD
             WarehouseEJB["WarehouseManagerBean<br/>(@Stateless)"]:::ejb
             CarrierEJB["CarrierManagerBean<br/>(@Stateless)"]:::ejb
             VendorEJB["SupplierIntegrationFacade<br/>(@Stateless)"]:::ejb
+            CustomsEJB["CustomsGatewayBean<br/>(@Stateless)"]:::ejb
             
             Timer["DeliveryStatusPollerBean<br/>(@Singleton @Schedule)"]:::ejb
             EvalTimer["SupplierEvaluationTimer<br/>(@Singleton @Schedule)"]:::ejb
+            CustomsTimer["AutomatedCustomsFilingTimer<br/>(@Singleton @Schedule)"]:::ejb
             Interceptor["AuditLoggingInterceptor<br/>(@AroundInvoke)"]:::ejb
             Recovery["ExceptionRecoveryService<br/>(@REQUIRES_NEW)"]:::ejb
         end
@@ -128,6 +133,7 @@ graph TD
         WildFly --- WarehouseEJB
         WildFly --- CarrierEJB
         WildFly --- VendorEJB
+        WildFly --- CustomsEJB
 
         OrderEJB -. "Intercepted by" .-> Interceptor
         CarrierEJB -- "Triggers Rollback" --> Recovery
@@ -149,7 +155,7 @@ graph TD
 ```
 
 ### Planned (Roadmap)
-* **Customs Integration:** Integration points for border officials to clear inbound international shipments.
+* **Logistics & Carrier Integration:** Implementing the bridge between fulfilled supplier orders and physical carrier shipments.
 * **Web UI:** Exposing the EJBs as REST APIs using JAX-RS for a modern frontend.
 
 ---

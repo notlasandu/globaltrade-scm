@@ -1,6 +1,7 @@
 package com.globaltrade.ejb.service;
 
 import com.globaltrade.core.entity.Shipment;
+import com.globaltrade.core.entity.ShipmentStatus;
 import com.globaltrade.core.exception.GlobalTradeException;
 import com.globaltrade.ejb.interceptor.AuditInterceptor;
 
@@ -23,7 +24,7 @@ public class LogisticsService {
 
     @RolesAllowed({"COORDINATOR", "VENDOR_REP"})
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void updateShipmentStatus(Long shipmentId, String status) throws GlobalTradeException {
+    public void updateShipmentStatus(Long shipmentId, ShipmentStatus status) throws GlobalTradeException {
         Shipment shipment = em.find(Shipment.class, shipmentId);
         if (shipment == null) {
             throw new GlobalTradeException("Shipment not found with ID: " + shipmentId);
