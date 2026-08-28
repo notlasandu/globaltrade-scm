@@ -6,6 +6,6 @@ import java.util.List;
 
 @Remote
 public interface CarrierManagerRemote {
-    List<Order> getManifest();
-    void updateTransitStatus(Long orderId, String eventCode);
+    List<String> getManifest();
+    void updateTransitStatus(String trackingNumber, String eventCode);
 }

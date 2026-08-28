@@ -60,6 +60,8 @@ public class CarrierManagerBeanIT {
         o.setOrderDeliveryStatus("SHIPPED");
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderingCustomer(customer);
+        String testTrackingNumber = "TRK-" + java.util.UUID.randomUUID().toString();
+        o.setTrackingNumber(testTrackingNumber);
 
         OrderItem item = new OrderItem();
         item.setSku(java.util.UUID.randomUUID().toString());
@@ -72,7 +74,7 @@ public class CarrierManagerBeanIT {
         Long orderId = o.getOrderId();
 
         Assertions.assertThrows(CarrierSystemOutageException.class, () -> {
-            carrierManagerWrapper.updateTransitStatus(orderId, "BREAKDOWN");
+            carrierManagerWrapper.updateTransitStatus(testTrackingNumber, "BREAKDOWN");
         });
 
         utx.begin();

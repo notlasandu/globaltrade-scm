@@ -1,7 +1,7 @@
 package com.globaltrade.ejb;
 
 import com.globaltrade.core.entity.Order;
-import com.globaltrade.core.entity.OrderItem;
+import com.globaltrade.core.entity.Shipment;
 import com.globaltrade.ejb.exception.CarrierSystemOutageException;
 import com.globaltrade.ejb.service.ExceptionRecoveryService;
 import jakarta.annotation.security.RolesAllowed;
@@ -27,32 +27,84 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
 
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public List<Order> getManifest() {
+    public List<String> getManifest() {
+        List<String> manifestStr = new ArrayList<>();
+        
         TypedQuery<Order> query = em.createQuery(
-                "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderItems LEFT JOIN FETCH o.orderingCustomer WHERE o.orderDeliveryStatus = :status", Order.class);
+                "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderingCustomer WHERE o.orderDeliveryStatus = :status", Order.class);
         query.setParameter("status", "SHIPPED");
         List<Order> orders = query.getResultList();
-
         for (Order order : orders) {
-            List<OrderItem> strippedItems = new ArrayList<>(order.getOrderItems());
-            order.setOrderItems(strippedItems);
+            manifestStr.add((order.getTrackingNumber() != null ? order.getTrackingNumber() : "N/A") + " | OUTBOUND | SHIPPED | " + order.getOrderingCustomer().getHospitalName());
         }
 
-        return orders;
+        TypedQuery<Shipment> shipmentQuery = em.createQuery(
+                "SELECT DISTINCT s FROM Shipment s LEFT JOIN FETCH s.vendor WHERE s.status = :status", Shipment.class);
+        shipmentQuery.setParameter("status", com.globaltrade.core.entity.ShipmentStatus.CLEARED_CUSTOMS);
+        List<Shipment> shipments = shipmentQuery.getResultList();
+        for (Shipment shipment : shipments) {
+            manifestStr.add(shipment.getTrackingNumber() + " | INBOUND | CLEARED_CUSTOMS | " + shipment.getVendor().getName());
+        }
+
+        return manifestStr;
     }
 
     @Override
-    public void updateTransitStatus(Long orderId, String eventCode) {
-        if ("DELIVERED".equals(eventCode)) {
-            Order order = em.find(Order.class, orderId);
-            if (order != null && "SHIPPED".equals(order.getOrderDeliveryStatus())) {
-                order.setOrderDeliveryStatus("DELIVERED");
-                em.merge(order);
-            }
-        } else if ("BREAKDOWN".equals(eventCode)) {
-            recoveryService.recoverFromCarrierFailure(orderId);
+    public void updateTransitStatus(String trackingNumber, String eventCode) {
+        if ("BREAKDOWN".equals(eventCode)) {
+            recoveryService.recoverFromCarrierFailure(trackingNumber);
+            throw new CarrierSystemOutageException("CRITICAL: Truck breakdown detected for Tracking Number " + trackingNumber + ". Executing recovery protocols.");
+        }
+
+        if ("DELIVERED".equals(eventCode) || "IN_TRANSIT".equals(eventCode)) {
+            String orderStatus = "DELIVERED".equals(eventCode) ? "DELIVERED" : "IN_TRANSIT";
+            com.globaltrade.core.entity.ShipmentStatus shipStatus = "DELIVERED".equals(eventCode) ? com.globaltrade.core.entity.ShipmentStatus.DELIVERED : com.globaltrade.core.entity.ShipmentStatus.IN_TRANSIT;
             
-            throw new CarrierSystemOutageException("CRITICAL: Truck breakdown detected for Order ID " + orderId + ". Executing recovery protocols.");
+            TypedQuery<Order> orderQuery = em.createQuery("SELECT o FROM Order o WHERE o.trackingNumber = :tn", Order.class);
+            orderQuery.setParameter("tn", trackingNumber);
+            List<Order> orders = orderQuery.getResultList();
+            
+            if (!orders.isEmpty()) {
+                Order order = orders.get(0);
+                order.setOrderDeliveryStatus(orderStatus);
+                em.merge(order);
+                return;
+            }
+
+            TypedQuery<Shipment> shipmentQuery = em.createQuery("SELECT s FROM Shipment s WHERE s.trackingNumber = :tn", Shipment.class);
+            shipmentQuery.setParameter("tn", trackingNumber);
+            List<Shipment> shipments = shipmentQuery.getResultList();
+            
+            if (!shipments.isEmpty()) {
+                Shipment shipment = shipments.get(0);
+                shipment.setStatus(shipStatus);
+                em.merge(shipment);
+                
+                if (shipStatus == com.globaltrade.core.entity.ShipmentStatus.DELIVERED) {
+                    List<com.globaltrade.core.entity.SupplierOrder> supplierOrders = em.createQuery(
+                            "SELECT so FROM SupplierOrder so WHERE so.shipment = :shipment", com.globaltrade.core.entity.SupplierOrder.class)
+                            .setParameter("shipment", shipment)
+                            .getResultList();
+                    
+                    for (com.globaltrade.core.entity.SupplierOrder so : supplierOrders) {
+                        so.setStatus("RECEIVED");
+                        so.setReceivedDate(java.time.LocalDateTime.now());
+                        so.setQuantityAccepted(so.getQuantity());
+                        em.merge(so);
+                        
+                        List<com.globaltrade.core.entity.Inventory> inventories = em.createQuery(
+                                "SELECT i FROM Inventory i WHERE i.sku = :sku", com.globaltrade.core.entity.Inventory.class)
+                                .setParameter("sku", so.getSku())
+                                .getResultList();
+                        
+                        if (!inventories.isEmpty()) {
+                            com.globaltrade.core.entity.Inventory inv = inventories.get(0);
+                            inv.setQuantity(inv.getQuantity() + so.getQuantity());
+                            em.merge(inv);
+                        }
+                    }
+                }
+            }
         }
     }
 }

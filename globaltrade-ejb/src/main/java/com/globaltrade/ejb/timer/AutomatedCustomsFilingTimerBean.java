@@ -32,7 +32,7 @@ public class AutomatedCustomsFilingTimerBean {
     @Inject
     private ExceptionRecoveryService recoveryService;
 
-    @Schedule(minute = "*/10", hour = "*", persistent = true)
+    @Schedule(minute = "*/1", hour = "*", persistent = true)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void processReadyForExportShipments() {
         TypedQuery<Shipment> query = em.createQuery(

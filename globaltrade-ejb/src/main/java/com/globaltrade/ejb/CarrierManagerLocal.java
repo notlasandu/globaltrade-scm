@@ -6,6 +6,6 @@ import java.util.List;
 
 @Local
 public interface CarrierManagerLocal {
-    List<Order> getManifest();
-    void updateTransitStatus(Long orderId, String eventCode);
+    List<String> getManifest();
+    void updateTransitStatus(String trackingNumber, String eventCode);
 }

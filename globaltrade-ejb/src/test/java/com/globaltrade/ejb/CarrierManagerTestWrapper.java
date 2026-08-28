@@ -13,7 +13,7 @@ public class CarrierManagerTestWrapper {
     @EJB
     private CarrierManagerLocal carrierManager;
 
-    public void updateTransitStatus(Long orderId, String eventCode) {
-        carrierManager.updateTransitStatus(orderId, eventCode);
+    public void updateTransitStatus(String trackingNumber, String eventCode) {
+        carrierManager.updateTransitStatus(trackingNumber, eventCode);
     }
 }

@@ -16,11 +16,24 @@ public class ExceptionRecoveryService {
     private EntityManager em;
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void recoverFromCarrierFailure(Long orderId) {
-        Order order = em.find(Order.class, orderId);
-        if (order != null) {
+    public void recoverFromCarrierFailure(String trackingNumber) {
+        java.util.List<Order> orders = em.createQuery("SELECT o FROM Order o WHERE o.trackingNumber = :tn", Order.class)
+                .setParameter("tn", trackingNumber)
+                .getResultList();
+        if (!orders.isEmpty()) {
+            Order order = orders.get(0);
             order.setOrderDeliveryStatus("DELAYED_TRANSIT_ISSUE");
             em.merge(order);
+            return;
+        }
+
+        java.util.List<Shipment> shipments = em.createQuery("SELECT s FROM Shipment s WHERE s.trackingNumber = :tn", Shipment.class)
+                .setParameter("tn", trackingNumber)
+                .getResultList();
+        if (!shipments.isEmpty()) {
+            Shipment shipment = shipments.get(0);
+            shipment.setStatus(ShipmentStatus.DELAYED_TRANSIT_ISSUE);
+            em.merge(shipment);
         }
     }
 

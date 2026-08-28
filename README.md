@@ -50,7 +50,7 @@ The system is designed with a strict multi-module Maven architecture, decoupling
 | :--- | :--- | :--- |
 | **Hospital Portal** | Secure B2B client for placing medical orders | `order`, `history`, `list` |
 | **Warehouse Ops** | Internal tool for staff to pack shipments and reconcile stock | `pending`, `pack`, `reconcile`, `wms-outage` |
-| **Carrier Logistics** | Mobile tool for drivers to manage deliveries | `manifest`, `deliver`, `breakdown` |
+| **Carrier Logistics** | Universal mobile tool for drivers managing Inbound and Outbound deliveries | `manifest`, `pickup`, `deliver`, `breakdown` |
 | **Supplier Portal** | Secure B2B client for vendors to fulfill restock orders | `orders`, `fulfill`, `evaluations` |
 | **Government Customs** | Secure portal for border clearance | `list`, `approve`, `reject` |
 
@@ -60,14 +60,16 @@ The system is designed with a strict multi-module Maven architecture, decoupling
          CARRIER LOGISTICS TERMINAL        
 =========================================
  Commands:
-  1. 'manifest' - View all shipped packages on truck
-  2. 'deliver <OrderId>' - Mark package delivered
-  3. 'breakdown <OrderId>' - Trigger vehicle failure
+  1. 'manifest' - View all packages ready for pickup (Inbound & Outbound)
+  2. 'pickup <TrackingNumber>' - Mark package as IN_TRANSIT
+  3. 'deliver <TrackingNumber>' - Mark package DELIVERED
+  4. 'breakdown <TrackingNumber>' - Trigger vehicle failure
+  5. 'exit' - Close terminal
 
-Enter command: breakdown 2
+Enter command: breakdown TRK-OUT-001
 
 [SERVER] Transmitting breakdown alert...
-  -> [EXCEPTION CAUGHT] CRITICAL: Truck breakdown detected for Order ID 2. Executing recovery protocols.
+  -> [EXCEPTION CAUGHT] CRITICAL: Truck breakdown detected for Tracking Number TRK-OUT-001. Executing recovery protocols.
   -> [RECOVERY] Order has been re-routed and marked DELAYED_TRANSIT_ISSUE by backup system.
 ```
 

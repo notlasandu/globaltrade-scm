@@ -29,6 +29,9 @@ public class Order implements Serializable {
     @Column(nullable = false)
     private String orderDeliveryStatus;
 
+    @Column(unique = true)
+    private String trackingNumber;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "customerId", nullable = false)
     private Customer orderingCustomer;
@@ -82,5 +85,13 @@ public class Order implements Serializable {
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setParentOrder(this);
+    }
+
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
     }
 }

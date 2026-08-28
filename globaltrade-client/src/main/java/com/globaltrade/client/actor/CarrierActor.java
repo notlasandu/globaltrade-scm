@@ -1,7 +1,6 @@
 package com.globaltrade.client.actor;
 
 import com.globaltrade.client.SimulationActor;
-import com.globaltrade.core.entity.Order;
 import com.globaltrade.ejb.CarrierManagerRemote;
 import com.globaltrade.ejb.exception.CarrierSystemOutageException;
 
@@ -33,10 +32,11 @@ public class CarrierActor implements SimulationActor {
         System.out.println("         CARRIER LOGISTICS TERMINAL        ");
         System.out.println("=========================================");
         System.out.println(" Commands:");
-        System.out.println("  1. 'manifest' - View all shipped packages on truck");
-        System.out.println("  2. 'deliver <OrderId>' - Mark package delivered");
-        System.out.println("  3. 'breakdown <OrderId>' - Trigger vehicle failure");
-        System.out.println("  4. 'exit' - Close terminal");
+        System.out.println("  1. 'manifest' - View all packages ready for pickup (Inbound & Outbound)");
+        System.out.println("  2. 'pickup <TrackingNumber>' - Mark package as IN_TRANSIT");
+        System.out.println("  3. 'deliver <TrackingNumber>' - Mark package DELIVERED");
+        System.out.println("  4. 'breakdown <TrackingNumber>' - Trigger vehicle failure");
+        System.out.println("  5. 'exit' - Close terminal");
 
         Scanner scanner = new Scanner(System.in);
 
@@ -48,33 +48,42 @@ public class CarrierActor implements SimulationActor {
                 System.out.println("\n[CARRIER ACTOR] Shutting down terminal...");
                 break;
             } else if (input.equalsIgnoreCase("manifest")) {
-                System.out.println("\n[SERVER] Fetching shipping manifest...");
+                System.out.println("\n[SERVER] Fetching unified shipping manifest...");
                 try {
-                    List<Order> manifest = carrierManager.getManifest();
+                    List<String> manifest = carrierManager.getManifest();
                     if (manifest.isEmpty()) {
-                        System.out.println("  -> No packages currently in transit.");
+                        System.out.println("  -> No packages currently waiting for transit.");
                     } else {
-                        for (Order o : manifest) {
-                            System.out.println("  -> Order ID: " + o.getOrderId() + " | Status: " + o.getOrderDeliveryStatus() + " | Customer: " + o.getOrderingCustomer().getHospitalName());
+                        for (String line : manifest) {
+                            System.out.println("  -> " + line);
                         }
                     }
                 } catch (Exception e) {
                     System.out.println("[ERROR] Server returned an error: " + e.getMessage());
                 }
+            } else if (input.toLowerCase().startsWith("pickup ")) {
+                try {
+                    String trackingNumber = input.substring(7).trim();
+                    System.out.println("\n[SERVER] Processing pickup confirmation...");
+                    carrierManager.updateTransitStatus(trackingNumber, "IN_TRANSIT");
+                    System.out.println("  -> SUCCESS: Tracking Number " + trackingNumber + " marked as IN_TRANSIT.");
+                } catch (Exception e) {
+                    System.out.println("[ERROR] Server returned an error: " + e.getMessage());
+                }
             } else if (input.toLowerCase().startsWith("deliver ")) {
                 try {
-                    Long orderId = Long.parseLong(input.substring(8).trim());
+                    String trackingNumber = input.substring(8).trim();
                     System.out.println("\n[SERVER] Processing delivery confirmation...");
-                    carrierManager.updateTransitStatus(orderId, "DELIVERED");
-                    System.out.println("  -> SUCCESS: Order " + orderId + " marked as DELIVERED.");
+                    carrierManager.updateTransitStatus(trackingNumber, "DELIVERED");
+                    System.out.println("  -> SUCCESS: Tracking Number " + trackingNumber + " marked as DELIVERED.");
                 } catch (Exception e) {
                     System.out.println("[ERROR] Server returned an error: " + e.getMessage());
                 }
             } else if (input.toLowerCase().startsWith("breakdown ")) {
                 try {
-                    Long orderId = Long.parseLong(input.substring(10).trim());
+                    String trackingNumber = input.substring(10).trim();
                     System.out.println("\n[SERVER] Transmitting breakdown alert...");
-                    carrierManager.updateTransitStatus(orderId, "BREAKDOWN");
+                    carrierManager.updateTransitStatus(trackingNumber, "BREAKDOWN");
                 } catch (CarrierSystemOutageException e) {
                     System.out.println("  -> [EXCEPTION CAUGHT] " + e.getMessage());
                     System.out.println("  -> [RECOVERY] Order has been re-routed and marked DELAYED_TRANSIT_ISSUE by backup system.");
