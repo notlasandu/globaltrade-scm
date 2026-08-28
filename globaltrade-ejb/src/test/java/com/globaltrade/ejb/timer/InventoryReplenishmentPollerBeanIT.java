@@ -72,7 +72,7 @@ public class InventoryReplenishmentPollerBeanIT {
         Inventory inv = new Inventory();
         inv.setSku(sku);
         inv.setProductName("Test Product");
-        inv.setQuantity(5); // Below threshold of 10
+        inv.setQuantity(5);
         inv.setReorderThreshold(10);
         inv.setReorderQuantity(50);
         inv.setLocation("Test Location");
@@ -80,8 +80,6 @@ public class InventoryReplenishmentPollerBeanIT {
         em.persist(inv);
         utx.commit();
 
-        // Let's run it up to 5 times to bypass the 5% Math.random() failure chance in SupplierOrderManagerBean
-        // Or we can just run it once, and if it randomly fails, run it again.
         for (int i = 0; i < 5; i++) {
             poller.pollInventoryLevels();
             
@@ -104,7 +102,6 @@ public class InventoryReplenishmentPollerBeanIT {
         Assertions.assertEquals(1, orders.size(), "Timer should have created exactly 1 order");
         Assertions.assertEquals("REQUESTED", orders.get(0).getStatus());
         
-        // Clean up
         em.remove(orders.get(0));
         em.remove(em.merge(inv));
         em.remove(em.merge(v));
@@ -125,7 +122,7 @@ public class InventoryReplenishmentPollerBeanIT {
         Inventory inv = new Inventory();
         inv.setSku(sku);
         inv.setProductName("Test Product");
-        inv.setQuantity(50); // High enough to avoid threshold
+        inv.setQuantity(50);
         inv.setReorderThreshold(10);
         inv.setReorderQuantity(50);
         inv.setLocation("Test Location");
@@ -133,10 +130,8 @@ public class InventoryReplenishmentPollerBeanIT {
         em.persist(inv);
         utx.commit();
 
-        // Stage physical count of 5 in WMS Simulator (shrinkage!)
         wmsSimulator.reportPhysicalCount(sku, 5);
 
-        // Run timer
         poller.pollInventoryLevels();
 
         utx.begin();
@@ -152,7 +147,6 @@ public class InventoryReplenishmentPollerBeanIT {
         List<SupplierOrder> orders = em.createQuery("SELECT s FROM SupplierOrder s WHERE s.sku = :sku", SupplierOrder.class)
                 .setParameter("sku", sku).getResultList();
         
-        // Clean up
         for(SupplierOrder so : orders) {
              em.remove(em.merge(so));
         }

@@ -17,14 +17,11 @@ public class VendorActor implements SimulationActor {
     public boolean authenticate(Context jndiContext) {
         try {
             SupplierIntegrationFacadeRemote facade = (SupplierIntegrationFacadeRemote) jndiContext.lookup(SUPPLIER_FACADE_JNDI);
-            // Strict JNDI Authentication: Test invocation on a secured EJB method
             facade.ping();
             return true;
         } catch (jakarta.ejb.EJBAccessException e) {
-            // Unauthenticated or insufficient roles
             return false;
         } catch (Exception e) {
-            // Other connectivity issues (like AuthenticationException wrapped in NamingException)
             if (e.getCause() instanceof jakarta.ejb.EJBAccessException || e.getMessage().contains("AuthenticationException")) {
                 return false;
             }
@@ -44,7 +41,6 @@ public class VendorActor implements SimulationActor {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
         
-        // For simulation purposes, we will default to Vendor ID 1 (MedTech Supplies)
         Long currentVendorId = 1L; 
 
         while (running) {

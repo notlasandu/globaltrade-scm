@@ -16,7 +16,7 @@ public class SimulationEngine {
         System.out.println("==================================================");
         System.out.println("  GLOBALTRADE LOGISTICS - SCM SIMULATION ENGINE  ");
         System.out.println("==================================================");
-        
+
         Scanner scanner = new Scanner(System.in);
         boolean engineRunning = true;
 
@@ -28,9 +28,9 @@ public class SimulationEngine {
             System.out.println("  4. Vendor/Supplier Portal");
             System.out.println("  5. Exit Simulator");
             System.out.print("\nEnter choice (1-5): ");
-            
+
             String choice = scanner.nextLine().trim();
-            
+
             if ("5".equals(choice)) {
                 System.out.println("[ENGINE] Shutting down simulation environment...");
                 engineRunning = false;
@@ -58,7 +58,6 @@ public class SimulationEngine {
             String password = scanner.nextLine().trim();
 
             try {
-                // Setup the connection to WildFly Server
                 Properties props = new Properties();
                 props.put(Context.INITIAL_CONTEXT_FACTORY, "org.wildfly.naming.client.WildFlyInitialContextFactory");
                 props.put(Context.PROVIDER_URL, "remote+http://localhost:8080");
@@ -67,15 +66,15 @@ public class SimulationEngine {
 
                 System.out.println("[ENGINE] Authenticating with JNDI Directory...");
                 Context jndiContext = new InitialContext(props);
-                
+
                 if (!selectedActor.authenticate(jndiContext)) {
-                    System.err.println("[ERROR] Authentication failed! Invalid username, password, or unauthorized role.");
+                    System.err.println(
+                            "[ERROR] Authentication failed! Invalid username, password, or unauthorized role.");
                     continue;
                 }
 
                 System.out.println("[ENGINE] Authentication Successful.\n");
 
-                // Execute the selected Simulation Script
                 selectedActor.execute(jndiContext);
 
             } catch (Exception e) {

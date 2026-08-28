@@ -13,7 +13,6 @@ public class WarehouseManagementSystemSimulatorBean implements WMSSimulatorLocal
 
     private static final Logger logger = Logger.getLogger(WarehouseManagementSystemSimulatorBean.class.getName());
 
-    // Holds staging data for physical counts (SKU -> Count)
     private final ConcurrentHashMap<String, Integer> physicalStockCounts = new ConcurrentHashMap<>();
     
     private boolean isOffline = false;
@@ -30,7 +29,6 @@ public class WarehouseManagementSystemSimulatorBean implements WMSSimulatorLocal
             throw new WMSSystemOutageException("WMS API Connection Timed Out. System is currently offline.");
         }
         
-        // Remove and return the physical count if it was reported
         return physicalStockCounts.remove(sku);
     }
 

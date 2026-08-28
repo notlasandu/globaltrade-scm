@@ -31,7 +31,7 @@ public class SupplierIntegrationFacadeBeanIT {
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClasses(SupplierIntegrationFacadeBean.class, SupplierIntegrationFacadeRemote.class, SupplierIntegrationFacadeTestWrapper.class)
-                .addPackage(Vendor.class.getPackage()) // Core entities
+                .addPackage(Vendor.class.getPackage())
                 .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
                 .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml");
     }
@@ -39,7 +39,7 @@ public class SupplierIntegrationFacadeBeanIT {
     @EJB
     private SupplierIntegrationFacadeTestWrapper wrapper;
 
-    @EJB // Direct injection to test security exceptions
+    @EJB
     private SupplierIntegrationFacadeRemote directFacade;
 
     @PersistenceContext
@@ -98,7 +98,6 @@ public class SupplierIntegrationFacadeBeanIT {
         List<SupplierOrder> orders = wrapper.getActiveOrdersForVendor(testVendorId);
         assertFalse(orders.isEmpty());
         assertEquals("REQUESTED", orders.get(0).getStatus());
-        // Verify RMI proxy stripping / EAGER fetch safety (the vendor should not throw LazyInitializationException)
         assertNotNull(orders.get(0).getVendor().getName());
     }
 
@@ -117,7 +116,6 @@ public class SupplierIntegrationFacadeBeanIT {
 
         wrapper.fulfillOrder(testVendorId, orderId, true);
 
-        // Verify state change
         SupplierOrder updatedOrder = em.find(SupplierOrder.class, orderId);
         assertEquals("SHIPPED", updatedOrder.getStatus());
         assertTrue(updatedOrder.getTradeDocumentationProvided());

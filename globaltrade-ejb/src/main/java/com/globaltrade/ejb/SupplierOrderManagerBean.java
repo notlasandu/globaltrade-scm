@@ -22,14 +22,13 @@ public class SupplierOrderManagerBean implements SupplierOrderManagerLocal, Supp
     @PersistenceContext(unitName = "GlobalTradePU")
     private EntityManager entityManager;
 
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void placeRestockOrder(Vendor vendor, String sku, int quantity) {
         
         if (!vendor.isEligible()) {
             throw new com.globaltrade.core.exception.SupplierNotEligibleException("CRITICAL: Vendor " + vendor.getName() + " is suspended due to poor performance evaluations.");
         }
 
-        // Simulate a vendor API connection that occasionally times out (e.g., 5% chance) or deterministically for tests
         if (Math.random() < 0.05 || vendor.getName().startsWith("FAIL_VENDOR")) {
             throw new VendorSystemOutageException("CRITICAL: Vendor API Connection Timeout for supplier " + vendor.getName());
         }
@@ -42,7 +41,6 @@ public class SupplierOrderManagerBean implements SupplierOrderManagerLocal, Supp
         try {
             productName = inventoryQuery.getSingleResult().getProductName();
         } catch (jakarta.persistence.NoResultException e) {
-            // Ignore and use default if for some reason the inventory item was deleted between polling and ordering
         }
 
         SupplierOrder newOrder = new SupplierOrder();
@@ -52,7 +50,7 @@ public class SupplierOrderManagerBean implements SupplierOrderManagerLocal, Supp
         newOrder.setQuantity(quantity);
         newOrder.setStatus("REQUESTED");
         newOrder.setPlacementTimestamp(LocalDateTime.now());
-        newOrder.setExpectedDeliveryDate(LocalDateTime.now().plusDays(5)); // Standard SLA
+        newOrder.setExpectedDeliveryDate(LocalDateTime.now().plusDays(5));
 
         entityManager.persist(newOrder);
     }

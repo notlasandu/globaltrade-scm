@@ -32,7 +32,6 @@ public class SupplierIntegrationFacadeBean implements SupplierIntegrationFacadeR
                 .setParameter("vendorId", vendorId)
                 .getResultList();
 
-        // RMI Safety: Strip any potential Hibernate PersistentBags if there were collections (none currently, but standard practice)
         return new ArrayList<>(orders);
     }
 

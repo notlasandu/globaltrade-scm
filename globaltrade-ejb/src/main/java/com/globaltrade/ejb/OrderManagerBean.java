@@ -58,7 +58,6 @@ public class OrderManagerBean implements OrderManagerLocal, OrderManagerRemote {
                 throw new IllegalArgumentException("Product with SKU '" + item.getSku() + "' does not exist in inventory.");
             }
             
-            // Populate the product name from the database since the client only provided the SKU
             item.setProductName(inventory.getProductName());
             
             if (inventory.getQuantity() < item.getQuantityRequested()) {
@@ -91,7 +90,6 @@ public class OrderManagerBean implements OrderManagerLocal, OrderManagerRemote {
 
         List<Order> orders = query.getResultList();
         
-        // Fix: Strip Hibernate PersistentBag wrappers so the remote Java client can deserialize the list
         for (Order o : orders) {
             if (o.getOrderItems() != null) {
                 o.setOrderItems(new java.util.ArrayList<>(o.getOrderItems()));

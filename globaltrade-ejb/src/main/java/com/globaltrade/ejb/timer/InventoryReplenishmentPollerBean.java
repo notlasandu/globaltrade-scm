@@ -40,7 +40,6 @@ public class InventoryReplenishmentPollerBean {
     public void pollInventoryLevels() {
         logger.info("Starting automated inventory replenishment poll...");
 
-        // Phase 1: WMS Reconciliation
         logger.info("Reconciling physical counts from WMS...");
         TypedQuery<Inventory> allItemsQuery = entityManager.createQuery("SELECT i FROM Inventory i", Inventory.class);
         List<Inventory> allItems = allItemsQuery.getResultList();
@@ -58,7 +57,6 @@ public class InventoryReplenishmentPollerBean {
             }
         }
 
-        // Phase 2: Find all inventory items below their reorder threshold
         logger.info("Checking for low stock...");
         TypedQuery<Inventory> query = entityManager.createQuery(
                 "SELECT i FROM Inventory i WHERE i.quantity < i.reorderThreshold", Inventory.class);
@@ -66,7 +64,6 @@ public class InventoryReplenishmentPollerBean {
 
         for (Inventory item : lowStockItems) {
             
-            // Check if there is already a pending supplier order for this item
             TypedQuery<Long> pendingOrderQuery = entityManager.createQuery(
                     "SELECT COUNT(s) FROM SupplierOrder s WHERE s.sku = :sku AND s.status IN ('REQUESTED', 'SHIPPED')", Long.class);
             pendingOrderQuery.setParameter("sku", item.getSku());
@@ -79,7 +76,6 @@ public class InventoryReplenishmentPollerBean {
                     supplierOrderManager.placeRestockOrder(item.getPrimaryVendor(), item.getSku(), item.getReorderQuantity());
                     logger.info("Successfully placed restock order for SKU: " + item.getSku());
                 } catch (VendorSystemOutageException e) {
-                    // Gracefully catch the outage exception so the timer doesn't crash for other items
                     logger.warning("Failed to place order for SKU: " + item.getSku() + " due to Vendor Outage. " + e.getMessage());
                 } catch (Exception e) {
                     logger.severe("Unexpected error while placing order for SKU: " + item.getSku() + ". " + e.getMessage());

@@ -57,17 +57,13 @@ public class SupplierOrderManagerBeanIT {
 
         String sku = "SKU_" + UUID.randomUUID().toString();
         
-        // Loop a bit in case Math.random() < 0.05 triggers it by chance. Or better, just catch and retry?
-        // Wait, Math.random() < 0.05 is active. The test could randomly fail 5% of the time.
-        // Let's just catch the exception and ignore it if it randomly fails, or just wrap it in a retry loop.
         boolean success = false;
         for (int i = 0; i < 5; i++) {
             try {
                 wrapper.placeRestockOrder(v, sku, 100);
                 success = true;
-                break; // succeeded
+                break;
             } catch (VendorSystemOutageException e) {
-                // Ignore random outage and retry
             }
         }
         Assertions.assertTrue(success, "Failed to place order after 5 attempts due to random outages");

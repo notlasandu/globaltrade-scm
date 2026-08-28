@@ -23,8 +23,6 @@ public class HospitalActor implements SimulationActor {
             orderManager.getOrdersForCustomer(-1L);
             return true;
         } catch (com.globaltrade.ejb.exception.UnauthorizedOrderAccessException e) {
-            // EJB Security allowed the request, meaning authentication and role check passed.
-            // It failed in the business logic because ID -1 doesn't exist, which is fine!
             return true;
         } catch (Exception e) {
             return false;

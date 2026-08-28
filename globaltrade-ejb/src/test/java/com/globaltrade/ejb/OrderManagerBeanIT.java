@@ -38,7 +38,6 @@ public class OrderManagerBeanIT {
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
     }
 
-    // Injecting the local interface (since the bean no longer exposes a no-interface view)
     @EJB
     private OrderManagerLocal orderManager;
 
@@ -60,15 +59,12 @@ public class OrderManagerBeanIT {
 
     @Test
     public void should_Lookup_RemoteInterface_viaJNDI() throws Exception {
-        // Manually creating an InitialContext to act as an external client
         Context context = new InitialContext();
         
-        // Using java:module avoids issues with Arquillian generating random deployment names
         String jndiName = "java:module/OrderManagerBean!com.globaltrade.ejb.OrderManagerRemote";
         
         OrderManagerRemote remoteManager = (OrderManagerRemote) context.lookup(jndiName);
         
-        // Verify that the proxy was successfully retrieved
         Assertions.assertNotNull(remoteManager, "The Remote Interface lookup should not be null.");
     }
 
@@ -79,7 +75,6 @@ public class OrderManagerBeanIT {
         Customer c = new Customer();
         c.setHospitalName("Order Hosp 3");
         c.setContactEmail(java.util.UUID.randomUUID().toString() + "@test.com");
-        // Arquillian @RunAs maps anonymous execution to the role name in WildFly usually
         c.setLoginUsername("CUSTOMER");
         c.setLoginPasswordHash("hash");
         em.persist(c);
@@ -93,9 +88,8 @@ public class OrderManagerBeanIT {
         Inventory inv = new Inventory();
         inv.setSku(sku);
         inv.setProductName("Test Product");
-        inv.setQuantity(500); // Has 500, we request 99999
+        inv.setQuantity(500);
         inv.setLocation("Test Location");
-        // Must add new required fields due to Phase 1 updates
         inv.setReorderThreshold(10);
         inv.setReorderQuantity(50);
         em.persist(inv);
@@ -105,7 +99,6 @@ public class OrderManagerBeanIT {
             wrapper.placeOrder(c.getCustomerId(), Collections.singletonList(item));
         });
 
-        // Cleanup
         utx.begin();
         em.joinTransaction();
         em.remove(em.merge(c));

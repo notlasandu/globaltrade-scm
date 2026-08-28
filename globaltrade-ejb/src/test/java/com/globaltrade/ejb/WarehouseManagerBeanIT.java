@@ -47,7 +47,6 @@ public class WarehouseManagerBeanIT {
 
     @Test
     public void getPendingOrders_should_returnStrippedOrderList_when_invoked() throws Exception {
-        // Setup Order
         utx.begin();
         em.joinTransaction();
         Customer c = new Customer();
@@ -81,7 +80,6 @@ public class WarehouseManagerBeanIT {
         List<Order> pendingOrders = warehouseManagerWrapper.getPendingOrders();
         Assertions.assertFalse(pendingOrders.isEmpty());
         
-        // Clean up
         utx.begin();
         em.joinTransaction();
         Order toDelete = em.find(Order.class, o.getOrderId());
@@ -91,7 +89,6 @@ public class WarehouseManagerBeanIT {
 
     @Test
     public void packOrder_should_deductInventory_when_stockIsSufficient() throws Exception {
-        // Setup Order
         utx.begin();
         em.joinTransaction();
         Customer c = new Customer();

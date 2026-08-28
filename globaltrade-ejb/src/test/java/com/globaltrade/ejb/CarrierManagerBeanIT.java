@@ -49,7 +49,6 @@ public class CarrierManagerBeanIT {
         utx.begin();
         em.joinTransaction();
         
-        // Find a customer from import.sql or create one if it doesn't exist
         Customer customer = new Customer();
         customer.setHospitalName("Carrier Hosp");
         customer.setContactEmail(java.util.UUID.randomUUID().toString() + "@hospital.com");
@@ -62,8 +61,8 @@ public class CarrierManagerBeanIT {
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderingCustomer(customer);
 
-        List<OrderItem> items = new ArrayList<>();
         OrderItem item = new OrderItem();
+        item.setSku(java.util.UUID.randomUUID().toString());
         item.setProductName("Test Package");
         item.setQuantityRequested(1);
         o.addOrderItem(item);
@@ -72,12 +71,10 @@ public class CarrierManagerBeanIT {
 
         Long orderId = o.getOrderId();
 
-        // 1. Assert that the main transaction throws an Exception and Rolls Back
         Assertions.assertThrows(CarrierSystemOutageException.class, () -> {
             carrierManagerWrapper.updateTransitStatus(orderId, "BREAKDOWN");
         });
 
-        // 2. Assert that the REQUIRES_NEW transaction survived the rollback
         utx.begin();
         em.joinTransaction();
         Order recoveredOrder = em.find(Order.class, orderId);
@@ -85,7 +82,6 @@ public class CarrierManagerBeanIT {
         Assertions.assertEquals("DELAYED_TRANSIT_ISSUE", recoveredOrder.getOrderDeliveryStatus(), 
             "The EJB REQUIRES_NEW transaction failed to save the delayed status!");
 
-        // Cleanup
         em.remove(recoveredOrder);
         utx.commit();
     }

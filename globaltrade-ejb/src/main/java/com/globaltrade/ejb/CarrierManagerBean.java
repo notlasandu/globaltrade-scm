@@ -33,7 +33,6 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
         query.setParameter("status", "SHIPPED");
         List<Order> orders = query.getResultList();
 
-        // Strip Hibernate proxies to prevent RMI serialization errors
         for (Order order : orders) {
             List<OrderItem> strippedItems = new ArrayList<>(order.getOrderItems());
             order.setOrderItems(strippedItems);
@@ -51,10 +50,8 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
                 em.merge(order);
             }
         } else if ("BREAKDOWN".equals(eventCode)) {
-            // Trigger the Exception Recovery Pattern (Executes in REQUIRES_NEW transaction)
             recoveryService.recoverFromCarrierFailure(orderId);
             
-            // Throw application exception to rollback current transaction and alert client
             throw new CarrierSystemOutageException("CRITICAL: Truck breakdown detected for Order ID " + orderId + ". Executing recovery protocols.");
         }
     }

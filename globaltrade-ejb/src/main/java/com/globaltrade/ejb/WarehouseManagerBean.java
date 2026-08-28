@@ -56,7 +56,6 @@ public class WarehouseManagerBean implements WarehouseManagerLocal, WarehouseMan
             throw new IllegalArgumentException("Order is not in PENDING state.");
         }
 
-        // Stock is now deducted at the time of order placement in OrderManagerBean.
 
         order.setOrderDeliveryStatus("PACKED");
         entityManager.merge(order);
