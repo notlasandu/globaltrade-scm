@@ -9,6 +9,7 @@ import com.globaltrade.ejb.SupplierOrderManagerRemote;
 import com.globaltrade.ejb.exception.VendorSystemOutageException;
 import com.globaltrade.ejb.exception.WMSSystemOutageException;
 import com.globaltrade.ejb.interceptor.AuditLoggingInterceptor;
+import com.globaltrade.core.exception.SupplierNotEligibleException;
 import com.globaltrade.ejb.WMSSimulatorLocal;
 import com.globaltrade.ejb.WMSSimulatorRemote;
 import com.globaltrade.ejb.WarehouseManagementSystemSimulatorBean;
@@ -38,7 +39,8 @@ public class InventoryReplenishmentPollerBeanIT {
                             SupplierOrderManagerLocal.class, SupplierOrderManagerRemote.class, 
                             VendorSystemOutageException.class, AuditLoggingInterceptor.class,
                             WarehouseManagementSystemSimulatorBean.class, WMSSimulatorLocal.class, 
-                            WMSSimulatorRemote.class, WMSSystemOutageException.class)
+                            WMSSimulatorRemote.class, WMSSystemOutageException.class,
+                            SupplierNotEligibleException.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
@@ -69,6 +71,7 @@ public class InventoryReplenishmentPollerBeanIT {
         String sku = "SKU_" + UUID.randomUUID().toString();
         Inventory inv = new Inventory();
         inv.setSku(sku);
+        inv.setProductName("Test Product");
         inv.setQuantity(5); // Below threshold of 10
         inv.setReorderThreshold(10);
         inv.setReorderQuantity(50);
@@ -121,6 +124,7 @@ public class InventoryReplenishmentPollerBeanIT {
         String sku = "SKU_" + UUID.randomUUID().toString();
         Inventory inv = new Inventory();
         inv.setSku(sku);
+        inv.setProductName("Test Product");
         inv.setQuantity(50); // High enough to avoid threshold
         inv.setReorderThreshold(10);
         inv.setReorderQuantity(50);

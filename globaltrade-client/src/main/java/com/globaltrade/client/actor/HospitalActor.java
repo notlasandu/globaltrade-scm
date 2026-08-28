@@ -50,7 +50,7 @@ public class HospitalActor implements SimulationActor {
             System.out.println("=========================================");
             System.out.println(" Commands:");
             System.out.println("  1. 'list' - View available products");
-            System.out.println("  2. 'order <Product_Name> <Qty>' - Place an order");
+            System.out.println("  2. 'order <SKU> <Qty>' - Place an order");
             System.out.println("  3. 'history' - View past orders");
             System.out.println("  4. 'exit' - Close terminal");
             System.out.print("\nEnter command: ");
@@ -67,24 +67,23 @@ public class HospitalActor implements SimulationActor {
                         System.out.println("\n[SERVER] Fetching available inventory...");
                         List<Inventory> products = inventoryManager.getAvailableProducts();
                         for (Inventory product : products) {
-                            System.out.println("  -> SKU: " + product.getSku() + " | Qty: " + product.getQuantity() + " | Location: " + product.getLocation());
+                            System.out.println("  -> SKU: " + product.getSku() + " | Product: " + product.getProductName() + " | Qty: " + product.getQuantity() + " | Location: " + product.getLocation());
                         }
                         break;
 
                     case "order":
-                        if (parts.length < 3) {
-                            System.out.println("[ERROR] Invalid format. Use: order <Product_Name> <Qty>");
+                        if (parts.length != 3) {
+                            System.out.println("[ERROR] Invalid format. Use: order <SKU> <Qty>");
                             break;
                         }
                         
-                        // The last word is the quantity, everything in the middle is the product name
-                        int qty = Integer.parseInt(parts[parts.length - 1]);
-                        String productName = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length - 1));
+                        String sku = parts[1];
+                        int qty = Integer.parseInt(parts[2]);
                         
-                        System.out.println("\n[SERVER] Transmitting order for " + qty + "x " + productName + "...");
+                        System.out.println("\n[SERVER] Transmitting order for " + qty + "x of SKU " + sku + "...");
                         List<OrderItem> items = new ArrayList<>();
                         OrderItem item = new OrderItem();
-                        item.setProductName(productName);
+                        item.setSku(sku);
                         item.setQuantityRequested(qty);
                         items.add(item);
                         

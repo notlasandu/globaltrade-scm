@@ -36,7 +36,7 @@ public class InventoryReplenishmentPollerBean {
     @Inject
     private WMSSimulatorLocal wmsSimulator;
 
-    @Schedule(hour = "*", minute = "*/30", persistent = true)
+    @Schedule(hour = "*", minute = "*", second = "*/10", persistent = false)
     public void pollInventoryLevels() {
         logger.info("Starting automated inventory replenishment poll...");
 
@@ -68,7 +68,7 @@ public class InventoryReplenishmentPollerBean {
             
             // Check if there is already a pending supplier order for this item
             TypedQuery<Long> pendingOrderQuery = entityManager.createQuery(
-                    "SELECT COUNT(s) FROM SupplierOrder s WHERE s.sku = :sku AND s.status = 'REQUESTED'", Long.class);
+                    "SELECT COUNT(s) FROM SupplierOrder s WHERE s.sku = :sku AND s.status IN ('REQUESTED', 'SHIPPED')", Long.class);
             pendingOrderQuery.setParameter("sku", item.getSku());
 
             if (pendingOrderQuery.getSingleResult() == 0) {

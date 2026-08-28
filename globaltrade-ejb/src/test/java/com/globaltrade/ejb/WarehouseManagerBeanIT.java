@@ -60,14 +60,18 @@ public class WarehouseManagerBeanIT {
         o.setOrderingCustomer(c);
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
-        String productName = "MRI_" + java.util.UUID.randomUUID().toString();
+        String sku = "MRI_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName(productName);
+        item.setSku(sku);
+        item.setProductName("Test MRI");
         item.setQuantityRequested(1);
         Inventory inv = new Inventory();
-        inv.setSku(productName);
+        inv.setSku(sku);
+        inv.setProductName("Test MRI");
         inv.setQuantity(50);
         inv.setLocation("Test Location");
+        inv.setReorderThreshold(10);
+        inv.setReorderQuantity(20);
         em.persist(inv);
         
         o.addOrderItem(item);
@@ -100,14 +104,18 @@ public class WarehouseManagerBeanIT {
         o.setOrderingCustomer(c);
         o.setOrderPlacementTimestamp(java.time.LocalDateTime.now());
         o.setOrderDeliveryStatus("PENDING");
-        String productName = "Masks_" + java.util.UUID.randomUUID().toString();
+        String sku = "Masks_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName(productName);
+        item.setSku(sku);
+        item.setProductName("Test Masks");
         item.setQuantityRequested(5);
         Inventory inv = new Inventory();
-        inv.setSku(productName);
+        inv.setSku(sku);
+        inv.setProductName("Test Masks");
         inv.setQuantity(500);
         inv.setLocation("Test Location");
+        inv.setReorderThreshold(10);
+        inv.setReorderQuantity(20);
         em.persist(inv);
 
         o.addOrderItem(item);

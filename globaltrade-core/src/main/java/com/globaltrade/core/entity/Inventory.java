@@ -14,6 +14,9 @@ public class Inventory implements Serializable {
     private String sku;
 
     @Column(nullable = false)
+    private String productName;
+
+    @Column(nullable = false)
     private int quantity;
 
     @Column(nullable = false)
@@ -34,6 +37,9 @@ public class Inventory implements Serializable {
 
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
+
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
 
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }

@@ -19,6 +19,9 @@ public class Vendor implements Serializable {
     @Column(nullable = false)
     private String performanceRating;
 
+    @Column(nullable = false)
+    private boolean eligible = true;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -30,4 +33,7 @@ public class Vendor implements Serializable {
 
     public String getPerformanceRating() { return performanceRating; }
     public void setPerformanceRating(String performanceRating) { this.performanceRating = performanceRating; }
+
+    public boolean isEligible() { return eligible; }
+    public void setEligible(boolean eligible) { this.eligible = eligible; }
 }

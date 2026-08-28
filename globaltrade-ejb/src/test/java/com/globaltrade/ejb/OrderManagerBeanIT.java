@@ -84,13 +84,15 @@ public class OrderManagerBeanIT {
         c.setLoginPasswordHash("hash");
         em.persist(c);
         
-        String productName = "Anti_" + java.util.UUID.randomUUID().toString();
+        String sku = "Anti_" + java.util.UUID.randomUUID().toString();
         OrderItem item = new OrderItem();
-        item.setProductName(productName);
+        item.setSku(sku);
+        item.setProductName("Test Product");
         item.setQuantityRequested(99999);
         
         Inventory inv = new Inventory();
-        inv.setSku(productName);
+        inv.setSku(sku);
+        inv.setProductName("Test Product");
         inv.setQuantity(500); // Has 500, we request 99999
         inv.setLocation("Test Location");
         // Must add new required fields due to Phase 1 updates

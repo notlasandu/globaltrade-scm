@@ -49,17 +49,20 @@ public class OrderManagerBean implements OrderManagerLocal, OrderManagerRemote {
         for (OrderItem item : items) {
             TypedQuery<Inventory> inventoryQuery = entityManager.createQuery(
                     "SELECT i FROM Inventory i WHERE i.sku = :sku", Inventory.class);
-            inventoryQuery.setParameter("sku", item.getProductName());
+            inventoryQuery.setParameter("sku", item.getSku());
             
             Inventory inventory;
             try {
                 inventory = inventoryQuery.getSingleResult();
             } catch (jakarta.persistence.NoResultException e) {
-                throw new IllegalArgumentException("Product '" + item.getProductName() + "' does not exist in inventory.");
+                throw new IllegalArgumentException("Product with SKU '" + item.getSku() + "' does not exist in inventory.");
             }
             
+            // Populate the product name from the database since the client only provided the SKU
+            item.setProductName(inventory.getProductName());
+            
             if (inventory.getQuantity() < item.getQuantityRequested()) {
-                throw new com.globaltrade.ejb.exception.InsufficientStockException("Insufficient stock for " + item.getProductName() + 
+                throw new com.globaltrade.ejb.exception.InsufficientStockException("Insufficient stock for " + inventory.getProductName() + 
                     ". Requested: " + item.getQuantityRequested() + ", Available: " + inventory.getQuantity());
             }
             

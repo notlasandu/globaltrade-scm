@@ -51,6 +51,7 @@ The system is designed with a strict multi-module Maven architecture, decoupling
 | **Hospital Portal** | Secure B2B client for placing medical orders | `order`, `history`, `list` |
 | **Warehouse Ops** | Internal tool for staff to pack shipments and reconcile stock | `pending`, `pack`, `reconcile`, `wms-outage` |
 | **Carrier Logistics** | Mobile tool for drivers to manage deliveries | `manifest`, `deliver`, `breakdown` |
+| **Supplier Portal** | Secure B2B client for vendors to fulfill restock orders | `orders`, `fulfill`, `evaluations` |
 
 #### Terminal Preview Example (Carrier)
 ```text
@@ -76,6 +77,7 @@ Enter command: breakdown 2
 
 ### 3. Advanced EJB Capabilities
 * **External WMS Integration:** A mocked Warehouse Management System using `@Singleton` and `ConcurrentHashMap` to stage cycle counts. An automated `@Schedule` timer asynchronously fetches these counts, reconciles the database, and dynamically triggers vendor restock orders if inventory dips below defined thresholds.
+* **Supplier Evaluation Engine:** An automated `@Schedule` singleton bean (`SupplierEvaluationTimerBean`) that evaluates vendor punctuality, defect rates, and customs compliance, automatically suspending vendors who fall below the required performance threshold.
 * **Automated Supply Chain Timers:** An asynchronous `@Schedule` singleton bean (`DeliveryStatusPollerBean`) that continually advances packed orders to a shipped status and dynamically polls for delivery confirmations.
 * **Transaction Exception Recovery:** Simulates real-world supply chain failures (e.g., truck breakdowns, WMS API outages). The system safely catches custom `rollback=true` exceptions, suspends the doomed transaction, and handles recovery gracefully.
 * **Arquillian Integration Testing:** Fully automated test suite that spins up a micro-deployment inside WildFly to rigorously validate EJB security wrappers, transaction boundaries, and database constraints.
@@ -97,12 +99,14 @@ graph TD
         Hospital["Hospital Terminal<br/>(Order Placements)"]:::client
         Warehouse["Warehouse Terminal<br/>(Packing Ops)"]:::client
         Carrier["Carrier Terminal<br/>(Logistics/Breakdowns)"]:::client
+        Vendor["Supplier Portal<br/>(Order Fulfillment)"]:::client
     end
 
     %% JNDI/RMI Boundary
     Hospital -- "JNDI / RMI" --> WildFly
     Warehouse -- "JNDI / RMI" --> WildFly
     Carrier -- "JNDI / RMI" --> WildFly
+    Vendor -- "JNDI / RMI" --> WildFly
 
     %% Server Layer
     subgraph "Server Layer (WildFly 40.0)"
@@ -112,8 +116,10 @@ graph TD
             OrderEJB["OrderManagerBean<br/>(@Stateless)"]:::ejb
             WarehouseEJB["WarehouseManagerBean<br/>(@Stateless)"]:::ejb
             CarrierEJB["CarrierManagerBean<br/>(@Stateless)"]:::ejb
+            VendorEJB["SupplierIntegrationFacade<br/>(@Stateless)"]:::ejb
             
             Timer["DeliveryStatusPollerBean<br/>(@Singleton @Schedule)"]:::ejb
+            EvalTimer["SupplierEvaluationTimer<br/>(@Singleton @Schedule)"]:::ejb
             Interceptor["AuditLoggingInterceptor<br/>(@AroundInvoke)"]:::ejb
             Recovery["ExceptionRecoveryService<br/>(@REQUIRES_NEW)"]:::ejb
         end
@@ -121,10 +127,12 @@ graph TD
         WildFly --- OrderEJB
         WildFly --- WarehouseEJB
         WildFly --- CarrierEJB
+        WildFly --- VendorEJB
 
         OrderEJB -. "Intercepted by" .-> Interceptor
         CarrierEJB -- "Triggers Rollback" --> Recovery
         Timer -. "Polls & Updates Status" .-> DbNode
+        EvalTimer -. "Evaluates Suppliers" .-> DbNode
     end
 
     %% Database Layer

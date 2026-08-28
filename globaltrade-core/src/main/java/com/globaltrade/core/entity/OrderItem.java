@@ -19,6 +19,9 @@ public class OrderItem implements Serializable {
     private Long orderItemId;
 
     @Column(nullable = false)
+    private String sku;
+
+    @Column(nullable = false)
     private String productName;
 
     @Column(nullable = false)
@@ -37,6 +40,14 @@ public class OrderItem implements Serializable {
 
     public void setOrderItemId(Long orderItemId) {
         this.orderItemId = orderItemId;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
     public String getProductName() {

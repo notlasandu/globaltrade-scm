@@ -26,7 +26,22 @@ public class SupplierOrder implements Serializable {
     private String sku;
 
     @Column(nullable = false)
+    private String productName;
+
+    @Column(nullable = false)
     private int quantity;
+
+    @Column
+    private LocalDateTime expectedDeliveryDate;
+
+    @Column
+    private LocalDateTime receivedDate;
+
+    @Column
+    private Integer quantityAccepted;
+
+    @Column
+    private Boolean tradeDocumentationProvided;
 
     public SupplierOrder() {}
 
@@ -45,6 +60,21 @@ public class SupplierOrder implements Serializable {
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
 
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
+
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public LocalDateTime getExpectedDeliveryDate() { return expectedDeliveryDate; }
+    public void setExpectedDeliveryDate(LocalDateTime expectedDeliveryDate) { this.expectedDeliveryDate = expectedDeliveryDate; }
+
+    public LocalDateTime getReceivedDate() { return receivedDate; }
+    public void setReceivedDate(LocalDateTime receivedDate) { this.receivedDate = receivedDate; }
+
+    public Integer getQuantityAccepted() { return quantityAccepted; }
+    public void setQuantityAccepted(Integer quantityAccepted) { this.quantityAccepted = quantityAccepted; }
+
+    public Boolean getTradeDocumentationProvided() { return tradeDocumentationProvided; }
+    public void setTradeDocumentationProvided(Boolean tradeDocumentationProvided) { this.tradeDocumentationProvided = tradeDocumentationProvided; }
 }

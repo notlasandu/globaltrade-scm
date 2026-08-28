@@ -3,6 +3,7 @@ package com.globaltrade.client;
 import com.globaltrade.client.actor.HospitalActor;
 import com.globaltrade.client.actor.WarehouseActor;
 import com.globaltrade.client.actor.CarrierActor;
+import com.globaltrade.client.actor.VendorActor;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -24,12 +25,13 @@ public class SimulationEngine {
             System.out.println("  1. Hospital Ordering Portal");
             System.out.println("  2. Warehouse Management Terminal");
             System.out.println("  3. Carrier Logistics Terminal");
-            System.out.println("  4. Exit Simulator");
-            System.out.print("\nEnter choice (1-4): ");
+            System.out.println("  4. Vendor/Supplier Portal");
+            System.out.println("  5. Exit Simulator");
+            System.out.print("\nEnter choice (1-5): ");
             
             String choice = scanner.nextLine().trim();
             
-            if ("4".equals(choice)) {
+            if ("5".equals(choice)) {
                 System.out.println("[ENGINE] Shutting down simulation environment...");
                 engineRunning = false;
                 continue;
@@ -42,6 +44,8 @@ public class SimulationEngine {
                 selectedActor = new WarehouseActor();
             } else if ("3".equals(choice)) {
                 selectedActor = new CarrierActor();
+            } else if ("4".equals(choice)) {
+                selectedActor = new VendorActor();
             } else {
                 System.out.println("[ERROR] Invalid selection. Please try again.");
                 continue;

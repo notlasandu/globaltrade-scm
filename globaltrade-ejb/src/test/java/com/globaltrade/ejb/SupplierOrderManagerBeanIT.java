@@ -4,9 +4,11 @@ import com.globaltrade.core.entity.SupplierOrder;
 import com.globaltrade.core.entity.Vendor;
 import com.globaltrade.ejb.exception.VendorSystemOutageException;
 import com.globaltrade.ejb.interceptor.AuditLoggingInterceptor;
+import com.globaltrade.core.exception.SupplierNotEligibleException;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,12 +27,12 @@ public class SupplierOrderManagerBeanIT {
 
     @Deployment
     public static JavaArchive createDeployment() {
-        return ShrinkWrap.create(JavaArchive.class, "supplier-test.jar")
+        return ShrinkWrap.create(JavaArchive.class)
                 .addClasses(SupplierOrderManagerBean.class, SupplierOrderManagerLocal.class, SupplierOrderManagerRemote.class, 
-                            VendorSystemOutageException.class, AuditLoggingInterceptor.class, SupplierOrderManagerTestWrapper.class)
-                .addPackage("com.globaltrade.core.entity")
-                .addAsManifestResource("META-INF/beans.xml", "beans.xml")
-                .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
+                            VendorSystemOutageException.class, SupplierNotEligibleException.class, AuditLoggingInterceptor.class, SupplierOrderManagerTestWrapper.class)
+                .addPackage(Vendor.class.getPackage())
+                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
+                .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml");
     }
 
     @EJB
