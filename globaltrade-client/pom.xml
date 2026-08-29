@@ -41,6 +41,18 @@
             <artifactId>jakarta.jakartaee-api</artifactId>
             <!-- Scope is intentionally NOT 'provided' here so the client JVM can read the annotations -->
         </dependency>
+
+        <!-- Embedded Tomcat for Web Portal -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>10.1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <version>10.1.13</version>
+        </dependency>
     </dependencies>
 
     <build>

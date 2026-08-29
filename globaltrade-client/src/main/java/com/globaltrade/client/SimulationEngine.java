@@ -10,6 +10,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import java.util.Properties;
 import java.util.Scanner;
+import com.globaltrade.client.web.WebPortalLauncher;
 
 public class SimulationEngine {
 
@@ -29,13 +30,17 @@ public class SimulationEngine {
             System.out.println("  4. Vendor/Supplier Portal");
             System.out.println("  5. Government Customs Terminal");
             System.out.println("  6. Exit Simulator");
-            System.out.print("\nEnter choice (1-6): ");
+            System.out.println("  7. Launch Web Portal");
+            System.out.print("\nEnter choice (1-7): ");
 
             String choice = scanner.nextLine().trim();
 
             if ("6".equals(choice)) {
                 System.out.println("[ENGINE] Shutting down simulation environment...");
                 engineRunning = false;
+                continue;
+            } else if ("7".equals(choice)) {
+                WebPortalLauncher.startServer();
                 continue;
             }
 
