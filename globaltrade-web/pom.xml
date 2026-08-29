@@ -21,6 +21,7 @@
         <dependency>
             <groupId>com.globaltrade</groupId>
             <artifactId>globaltrade-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.globaltrade</groupId>
