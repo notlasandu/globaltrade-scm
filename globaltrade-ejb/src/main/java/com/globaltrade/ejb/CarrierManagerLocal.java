@@ -8,4 +8,5 @@ import java.util.List;
 public interface CarrierManagerLocal {
     List<String> getManifest();
     void updateTransitStatus(String trackingNumber, String eventCode);
+    String issueTrackingNumber(String prefix);
 }

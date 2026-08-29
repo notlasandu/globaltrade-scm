@@ -30,8 +30,11 @@ public class WarehouseManagerBeanIT {
     @Deployment
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class, "test.jar")
-                .addClasses(WarehouseManagerBean.class, WarehouseManagerLocal.class, WarehouseManagerRemote.class, InsufficientStockException.class, AuditInterceptor.class, WarehouseManagerTestWrapper.class)
+                .addClasses(WarehouseManagerBean.class, WarehouseManagerLocal.class, WarehouseManagerRemote.class, InsufficientStockException.class, AuditInterceptor.class, WarehouseManagerTestWrapper.class, CarrierManagerBean.class, CarrierManagerLocal.class, CarrierManagerRemote.class)
                 .addPackage("com.globaltrade.core.entity")
+                .addPackage("com.globaltrade.core.exception")
+                .addPackage("com.globaltrade.ejb.exception")
+                .addPackage("com.globaltrade.ejb.service")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");
     }

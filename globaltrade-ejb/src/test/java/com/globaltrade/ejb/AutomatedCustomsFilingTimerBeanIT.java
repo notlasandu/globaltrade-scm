@@ -32,7 +32,7 @@ public class AutomatedCustomsFilingTimerBeanIT {
                 .addClasses(AutomatedCustomsFilingTimerBean.class,
                             CustomsGatewayBean.class, CustomsGatewayLocal.class, CustomsGatewayRemote.class,
                             InvalidCustomsPaperworkException.class, com.globaltrade.core.exception.CustomsClearanceRejectedException.class, GlobalTradeException.class, CustomsComplianceInterceptor.class,
-                            ExceptionRecoveryService.class)
+                            ExceptionRecoveryService.class, CarrierManagerBean.class, CarrierManagerLocal.class, CarrierManagerRemote.class, com.globaltrade.ejb.exception.CarrierSystemOutageException.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");

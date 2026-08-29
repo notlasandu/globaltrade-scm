@@ -27,6 +27,9 @@ public class WarehouseManagerBean implements WarehouseManagerLocal, WarehouseMan
     @PersistenceContext(unitName = "GlobalTradePU")
     private EntityManager entityManager;
 
+    @jakarta.ejb.EJB
+    private CarrierManagerLocal carrierManager;
+
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public List<Order> getPendingOrders() {
@@ -58,6 +61,7 @@ public class WarehouseManagerBean implements WarehouseManagerLocal, WarehouseMan
 
 
         order.setOrderDeliveryStatus("PACKED");
+        order.setTrackingNumber(carrierManager.issueTrackingNumber("OUT"));
         entityManager.merge(order);
     }
 }

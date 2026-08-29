@@ -8,8 +8,10 @@ import com.globaltrade.core.exception.CustomsClearanceRejectedException;
 import com.globaltrade.core.exception.InvalidCustomsPaperworkException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
+import jakarta.ejb.EJB;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
+import com.globaltrade.ejb.CarrierManagerLocal;
 import jakarta.interceptor.Interceptors;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -64,6 +66,9 @@ public class CustomsGatewayBean implements CustomsGatewayLocal, CustomsGatewayRe
         em.merge(shipment);
     }
 
+    @EJB
+    private CarrierManagerLocal carrierManager;
+
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void processClearanceDecision(Long shipmentId, boolean isApproved) throws CustomsClearanceRejectedException {
@@ -74,6 +79,11 @@ public class CustomsGatewayBean implements CustomsGatewayLocal, CustomsGatewayRe
 
         if (isApproved) {
             shipment.setStatus(ShipmentStatus.CLEARED_CUSTOMS);
+            
+            // Generate Internal Logistics Tracking Code
+            String internalTracking = carrierManager.issueTrackingNumber("INB");
+            shipment.setInternalTrackingNumber(internalTracking);
+            
             em.merge(shipment);
         } else {
             shipment.setStatus(ShipmentStatus.REJECTED_CUSTOMS);

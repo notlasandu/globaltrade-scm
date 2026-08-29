@@ -6,6 +6,7 @@ import com.globaltrade.ejb.exception.CarrierSystemOutageException;
 import jakarta.ejb.Schedule;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
+import jakarta.ejb.EJB;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -25,6 +26,9 @@ public class DeliveryStatusPollerBean {
     @Inject
     private CarrierTrackingSimulatorBean carrierTrackingSimulator;
 
+    @EJB
+    private com.globaltrade.ejb.CarrierManagerLocal carrierManager;
+
     @Schedule(hour = "*", minute = "*/15", persistent = true)
     public void pollDeliveryStatuses() {
         pollerLogger.info("Starting automated delivery status poll...");
@@ -37,6 +41,10 @@ public class DeliveryStatusPollerBean {
             try {
                 if ("PACKED".equals(currentOrder.getOrderDeliveryStatus())) {
                     pollerLogger.info("Allocating carrier for packed order " + currentOrder.getOrderId());
+                    
+                    String outboundTracking = carrierManager.issueTrackingNumber("OUT");
+                    currentOrder.setTrackingNumber(outboundTracking);
+                    
                     currentOrder.setOrderDeliveryStatus("SHIPPED");
                     entityManager.merge(currentOrder);
                 } else if ("SHIPPED".equals(currentOrder.getOrderDeliveryStatus())) {

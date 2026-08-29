@@ -24,7 +24,12 @@ public class DeliveryStatusPollerBeanIT {
     public static JavaArchive createDeployment() {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClasses(DeliveryStatusPollerBean.class, CarrierTrackingSimulatorBean.class,
-                        CarrierSystemOutageException.class)
+                        CarrierSystemOutageException.class,
+                        com.globaltrade.ejb.CarrierManagerBean.class, 
+                        com.globaltrade.ejb.CarrierManagerLocal.class, 
+                        com.globaltrade.ejb.CarrierManagerRemote.class,
+                        com.globaltrade.ejb.service.ExceptionRecoveryService.class,
+                        com.globaltrade.core.exception.GlobalTradeException.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");

@@ -31,7 +31,7 @@ public class CustomsGatewayBeanIT {
         return ShrinkWrap.create(JavaArchive.class, "test.jar")
                 .addClasses(CustomsGatewayBean.class, CustomsGatewayLocal.class, CustomsGatewayRemote.class,
                             CustomsClearanceRejectedException.class, com.globaltrade.core.exception.InvalidCustomsPaperworkException.class, GlobalTradeException.class, CustomsComplianceInterceptor.class,
-                            CustomsGatewayTestWrapper.class)
+                            CustomsGatewayTestWrapper.class, CarrierManagerBean.class, CarrierManagerLocal.class, CarrierManagerRemote.class, com.globaltrade.ejb.exception.CarrierSystemOutageException.class, com.globaltrade.ejb.service.ExceptionRecoveryService.class)
                 .addPackage("com.globaltrade.core.entity")
                 .addAsManifestResource("META-INF/beans.xml", "beans.xml")
                 .addAsManifestResource("META-INF/persistence.xml", "persistence.xml");

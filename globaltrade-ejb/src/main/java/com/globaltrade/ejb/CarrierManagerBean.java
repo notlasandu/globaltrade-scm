@@ -5,6 +5,7 @@ import com.globaltrade.core.entity.Shipment;
 import com.globaltrade.ejb.exception.CarrierSystemOutageException;
 import com.globaltrade.ejb.service.ExceptionRecoveryService;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.annotation.security.PermitAll;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -32,10 +33,10 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
         
         TypedQuery<Order> query = em.createQuery(
                 "SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderingCustomer WHERE o.orderDeliveryStatus = :status", Order.class);
-        query.setParameter("status", "SHIPPED");
+        query.setParameter("status", "PACKED");
         List<Order> orders = query.getResultList();
         for (Order order : orders) {
-            manifestStr.add((order.getTrackingNumber() != null ? order.getTrackingNumber() : "N/A") + " | OUTBOUND | SHIPPED | " + order.getOrderingCustomer().getHospitalName());
+            manifestStr.add((order.getTrackingNumber() != null ? order.getTrackingNumber() : "N/A") + " | OUTBOUND | PACKED | " + order.getOrderingCustomer().getHospitalName());
         }
 
         TypedQuery<Shipment> shipmentQuery = em.createQuery(
@@ -43,10 +44,17 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
         shipmentQuery.setParameter("status", com.globaltrade.core.entity.ShipmentStatus.CLEARED_CUSTOMS);
         List<Shipment> shipments = shipmentQuery.getResultList();
         for (Shipment shipment : shipments) {
-            manifestStr.add(shipment.getTrackingNumber() + " | INBOUND | CLEARED_CUSTOMS | " + shipment.getVendor().getName());
+            String tracking = shipment.getInternalTrackingNumber() != null ? shipment.getInternalTrackingNumber() : shipment.getTrackingNumber();
+            manifestStr.add(tracking + " | INBOUND | CLEARED_CUSTOMS | " + shipment.getVendor().getName());
         }
 
         return manifestStr;
+    }
+
+    @Override
+    @PermitAll
+    public String issueTrackingNumber(String prefix) {
+        return prefix + "-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
     @Override
@@ -71,7 +79,7 @@ public class CarrierManagerBean implements CarrierManagerRemote, CarrierManagerL
                 return;
             }
 
-            TypedQuery<Shipment> shipmentQuery = em.createQuery("SELECT s FROM Shipment s WHERE s.trackingNumber = :tn", Shipment.class);
+            TypedQuery<Shipment> shipmentQuery = em.createQuery("SELECT s FROM Shipment s WHERE s.internalTrackingNumber = :tn OR s.trackingNumber = :tn", Shipment.class);
             shipmentQuery.setParameter("tn", trackingNumber);
             List<Shipment> shipments = shipmentQuery.getResultList();
             

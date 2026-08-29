@@ -14,6 +14,9 @@ public class Shipment implements Serializable {
     @Column(nullable = false, unique = true)
     private String trackingNumber;
 
+    @Column(unique = true)
+    private String internalTrackingNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;
@@ -30,6 +33,9 @@ public class Shipment implements Serializable {
 
     public String getTrackingNumber() { return trackingNumber; }
     public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber; }
+
+    public String getInternalTrackingNumber() { return internalTrackingNumber; }
+    public void setInternalTrackingNumber(String internalTrackingNumber) { this.internalTrackingNumber = internalTrackingNumber; }
 
     public Vendor getVendor() { return vendor; }
     public void setVendor(Vendor vendor) { this.vendor = vendor; }
